@@ -386,7 +386,7 @@ All matched values are normalized to canonical forms before entering the schema:
 
 ### 9.2 LLM Fallback
 
-If overall document confidence < 0.7 after Stage 2, the raw extracted text is sent to an LLM (Anthropic Claude API) for structured extraction.
+If overall document confidence < 0.7 after Stage 2, the raw extracted text is sent to an LLM (Google Gemini API) for structured extraction.
 
 **Prompt contract:**
 
@@ -593,7 +593,7 @@ When no saved state exists, the app initializes with:
 | **Empty PDF**                | pdf.js returns < 50 characters; file > 100 KB              | Silent re-route to Tesseract.js OCR path. If OCR also fails, show error (see below).                                                                           |
 | **OCR failure**              | Tesseract.js returns empty string or throws                | Error state on Intake screen: "We couldn't read this file. Try a clearer image, or enter your schedule manually." + "Enter manually" CTA.                      |
 | **Parse confidence too low** | Overall score < 0.5 after regex and LLM fallback           | Parse Review Screen opens with a full warning banner: "We had trouble reading this schedule. Please review all fields carefully." All fields marked uncertain. |
-| **LLM API failure**          | Network error or non-200 response from Claude API          | Silent fallback to the manual correction path. User is not shown a technical error.                                                                            |
+| **LLM API failure**          | Network error or non-200 response from Gemini API          | Silent fallback to the manual correction path. User is not shown a technical error.                                                                            |
 | **localStorage full**        | `QuotaExceededError` on save                               | Non-blocking toast: "Couldn't save your schedule. Try clearing unused browser data." Schedule remains in memory for the session.                               |
 | **localStorage unavailable** | Private/incognito mode or browser restriction              | App runs in session-only mode. A persistent banner informs: "Your schedule won't be saved between sessions in this browser mode."                              |
 
