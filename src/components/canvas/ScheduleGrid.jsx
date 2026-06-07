@@ -125,41 +125,85 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
  * Entries that overlap share the column width equally.
  */
 function computeOverlaps(entries) {
-  if (entries.length <= 1) return entries;
+  if (entries.length === 0) return [];
 
-  // Sort by start time
+  // Sort by start time, then by duration (longer first)
   const sorted = [...entries].sort((a, b) => {
-    return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
+    const startDiff = timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
+    if (startDiff !== 0) return startDiff;
+    return timeToMinutes(b.end_time) - timeToMinutes(a.end_time);
   });
 
-  // Group overlapping entries
-  const groups = [];
-  let currentGroup = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    const prev = currentGroup[currentGroup.length - 1];
-    const curr = sorted[i];
-
-    if (timeToMinutes(curr.start_time) < timeToMinutes(prev.end_time)) {
-      currentGroup.push(curr);
-    } else {
-      groups.push(currentGroup);
-      currentGroup = [curr];
+  // Group into connected clusters (where entries transitively overlap)
+  const clusters = [];
+  for (const entry of sorted) {
+    let placedInCluster = false;
+    for (const cluster of clusters) {
+      const overlaps = cluster.some((e) => {
+        const startA = timeToMinutes(e.start_time);
+        const endA = timeToMinutes(e.end_time);
+        const startB = timeToMinutes(entry.start_time);
+        const endB = timeToMinutes(entry.end_time);
+        return startB < endA && startA < endB;
+      });
+      if (overlaps) {
+        cluster.push(entry);
+        placedInCluster = true;
+        break;
+      }
+    }
+    if (!placedInCluster) {
+      clusters.push([entry]);
     }
   }
-  groups.push(currentGroup);
 
-  // Assign layout properties
   const result = [];
-  for (const group of groups) {
-    const count = group.length;
-    group.forEach((entry, idx) => {
-      result.push({
-        ...entry,
-        _layoutWidth: count > 1 ? `calc(${100 / count}% - 4px)` : "calc(100% - 4px)",
-        _layoutLeft: count > 1 ? `calc(${(idx * 100) / count}% + 2px)` : "2px",
-      });
+
+  // Assign column indices for each cluster
+  for (const cluster of clusters) {
+    const columns = []; // columns[colIdx] = array of entries
+
+    const clusterSorted = [...cluster].sort((a, b) => {
+      return timeToMinutes(a.start_time) - timeToMinutes(b.start_time);
     });
+
+    for (const entry of clusterSorted) {
+      let colIdx = 0;
+      let placed = false;
+
+      while (colIdx < columns.length) {
+        const hasOverlap = columns[colIdx].some((e) => {
+          const startA = timeToMinutes(e.start_time);
+          const endA = timeToMinutes(e.end_time);
+          const startB = timeToMinutes(entry.start_time);
+          const endB = timeToMinutes(entry.end_time);
+          return startB < endA && startA < endB;
+        });
+
+        if (!hasOverlap) {
+          columns[colIdx].push(entry);
+          entry._colIdx = colIdx;
+          placed = true;
+          break;
+        }
+        colIdx++;
+      }
+
+      if (!placed) {
+        columns.push([entry]);
+        entry._colIdx = columns.length - 1;
+      }
+    }
+
+    const totalCols = columns.length;
+    for (const entry of cluster) {
+      const colIdx = entry._colIdx;
+      entry._layoutWidth =
+        totalCols > 1 ? `calc(${100 / totalCols}% - 4px)` : "calc(100% - 4px)";
+      entry._layoutLeft =
+        totalCols > 1 ? `calc(${(colIdx * 100) / totalCols}% + 2px)` : "2px";
+      result.push(entry);
+    }
   }
 
   return result;

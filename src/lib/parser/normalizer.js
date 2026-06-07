@@ -37,6 +37,8 @@ const COMPOUND_MAP = {
   mwf: ["Monday", "Wednesday", "Friday"],
   mw: ["Monday", "Wednesday"],
   tth: ["Tuesday", "Thursday"],
+  mth: ["Monday", "Thursday"],
+  wth: ["Wednesday", "Thursday"],
   "t/th": ["Tuesday", "Thursday"],
   tr: ["Tuesday", "Thursday"],
   mtwthf: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
