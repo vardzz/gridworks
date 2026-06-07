@@ -76,14 +76,14 @@ export default function LandingPage() {
 
               {/* CS 101 Card */}
               <div className="absolute top-0 right-10 w-72 h-40 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-2xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0 z-20">
-                <div className="w-8 h-2 bg-prussian-blue mb-4 rounded-full" />
+                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
                 <div className="text-3xl font-bold tracking-tight text-black">CS 101</div>
                 <div className="text-sm font-medium text-prussian-blue-600 mt-1">9:00 AM • Lecture Hall</div>
               </div>
 
               {/* Physics II Card */}
               <div className="absolute top-40 right-0 w-64 h-32 bg-white border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0 z-10">
-                <div className="w-6 h-2 bg-black mb-3 rounded-full" />
+                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
                 <div className="text-2xl font-bold tracking-tight text-black">Physics II</div>
                 <div className="text-sm font-medium text-prussian-blue-600 mt-1">3:30 PM • Lab 4</div>
               </div>
