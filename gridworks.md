@@ -73,8 +73,15 @@ Gridworks acts as a deterministic **Document‑to‑Layout Pipeline**. It interc
 | 4.1 | Client‑Side Intake Zone (+ Action) | Input Interfaces: Drag‑and‑Drop web zone, native OS file picker. Supported MIME types: `application/pdf`, `image/png`, `image/jpeg`. |
 | 4.2 | Guided Style Matrix | Provides four UI layout styles: Minimalist Bureau, Pastel Planner, Neon Cyberpunk, High‑Density Compact Matrix. |
 | 4.3 | Inline Canvas Mutation | Every text block in the DOM layout preview is editable via direct focus selectors. |
-| 4.4 | Vector Print Layout Optimization | CSS `@media print` rules strip navigation, adjust viewport to A4/Letter, and trigger `window.print()`. |
+| 4.4 | Dual-Format Multi-Export Engine (PDF & PNG) | Handles export of schedule canvas to PDF via print media and PNG via html-to-image, with naming, scaling, and layout safeguards. |
 
+#### 4.4 Dual-Format Multi-Export Engine (PDF & PNG)
+
+- **Automated File Naming**: The export system must automatically generate the filename using a clean convention based on the current schedule state. Example pattern: `Gridworks_Schedule_<Current_Year>.pdf` for PDF and `Gridworks_Schedule_<Current_Year>.png` for PNG. The `<Current_Year>` token is derived from the schedule's metadata (e.g., `new Date().getFullYear()`).
+
+- **Canvas Upscaling for PNG**: When converting the schedule canvas to PNG via the `html-to-image` library, the engine must set `pixelRatio: 2` (or double the device pixel ratio) to produce a high‑definition image. This ensures text blocks appear crisp on high‑resolution smartphone screens.
+
+- **Print Layout Safeguard**: The CSS `@media print` rules must enforce that the schedule canvas fits entirely on a single page. Use `@page { size: A4 portrait; margin: 0; }` and set the canvas container to `width: 100%` and `height: auto` with `break-inside: avoid;`. This prevents vertical overflow across multiple printed pages.
 ---
 
 ## 5. Technology Stack Selection {#technology-stack-selection}
