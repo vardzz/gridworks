@@ -30,10 +30,10 @@ export default function StyleSidebar({
 
   if (isCollapsed) {
     return (
-      <div className="w-10 border-l border-neutral-200 bg-white flex flex-col items-center py-4 gap-3">
+      <div className="w-10 border-l border-alabaster-grey bg-white flex flex-col items-center py-4 gap-3">
         <button
           onClick={() => setIsCollapsed(false)}
-          className="text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer text-lg"
+          className="text-alabaster-grey-400 hover:text-prussian-blue-700 transition-colors cursor-pointer text-lg"
           title="Expand sidebar"
         >
           ◀
@@ -43,13 +43,13 @@ export default function StyleSidebar({
   }
 
   return (
-    <div className="w-72 border-l border-neutral-200 bg-white flex flex-col overflow-hidden shrink-0">
+    <div className="w-72 border-l border-alabaster-grey bg-white flex flex-col overflow-hidden shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-        <span className="text-sm font-semibold text-neutral-800">Style</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-alabaster-grey">
+        <span className="text-sm font-semibold text-prussian-blue-200">Style</span>
         <button
           onClick={() => setIsCollapsed(true)}
-          className="text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer text-sm"
+          className="text-alabaster-grey-400 hover:text-prussian-blue-700 transition-colors cursor-pointer text-sm"
           title="Collapse sidebar"
         >
           ▶
@@ -73,13 +73,13 @@ export default function StyleSidebar({
 
         {/* Font Selector */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
             Display Font
           </label>
           <select
             value={prefs.font_family || "Inter"}
             onChange={(e) => onUpdate({ font_family: e.target.value })}
-            className="w-full px-3 py-2 text-sm border border-neutral-200 rounded-lg bg-white cursor-pointer"
+            className="w-full px-3 py-2 text-sm border border-alabaster-grey rounded-lg bg-white cursor-pointer"
           >
             {AVAILABLE_FONTS.map((font) => (
               <option key={font.id} value={font.id}>
@@ -91,7 +91,7 @@ export default function StyleSidebar({
 
         {/* Paper Size */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+          <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
             Paper Size
           </label>
           <div className="flex gap-2">
@@ -102,7 +102,7 @@ export default function StyleSidebar({
                 className={`flex-1 py-2 text-xs rounded-lg border transition-colors cursor-pointer ${
                   prefs.paper_size === size
                     ? "border-[var(--gw-accent)] bg-blue-50 text-[var(--gw-accent)]"
-                    : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
+                    : "border-alabaster-grey text-prussian-blue-700 hover:border-alabaster-grey-400"
                 }`}
               >
                 {size}
@@ -113,23 +113,23 @@ export default function StyleSidebar({
       </div>
 
       {/* Bottom toolbar */}
-      <div className="p-4 border-t border-neutral-200 space-y-2">
+      <div className="p-4 border-t border-alabaster-grey space-y-2">
         <button
           onClick={onExportPNG}
-          className="w-full py-2.5 text-sm font-medium bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer"
+          className="w-full py-2.5 text-sm font-medium bg-prussian-blue text-white rounded-lg hover:bg-prussian-blue-600 transition-colors cursor-pointer"
         >
           Export PNG (HD)
         </button>
         <button
           onClick={onExportPDF}
-          className="w-full py-2.5 text-sm font-medium border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
+          className="w-full py-2.5 text-sm font-medium border border-alabaster-grey-400 rounded-lg hover:bg-alabaster-grey-900 transition-colors cursor-pointer"
         >
           Export PDF
         </button>
         <div className="flex gap-2 pt-1">
           <button
             onClick={onReUpload}
-            className="flex-1 py-2 text-xs text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
+            className="flex-1 py-2 text-xs text-alabaster-grey-300 hover:text-prussian-blue-700 transition-colors cursor-pointer"
           >
             Re-upload
           </button>

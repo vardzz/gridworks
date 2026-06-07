@@ -15,7 +15,7 @@ export default function ThemePicker({ activeThemeId, onSelect }) {
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+      <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
         Theme
       </label>
       <div className="grid grid-cols-2 gap-2">
@@ -28,7 +28,7 @@ export default function ThemePicker({ activeThemeId, onSelect }) {
               className={`p-3 rounded-lg border-2 text-left transition-all cursor-pointer hover:shadow-sm ${
                 isActive
                   ? "border-[var(--gw-accent)] shadow-md"
-                  : "border-neutral-200 hover:border-neutral-300"
+                  : "border-alabaster-grey hover:border-alabaster-grey-400"
               }`}
             >
               {/* Color swatch strip */}
@@ -41,7 +41,7 @@ export default function ThemePicker({ activeThemeId, onSelect }) {
                   />
                 ))}
               </div>
-              <div className="text-xs font-medium text-neutral-800 truncate">
+              <div className="text-xs font-medium text-prussian-blue-200 truncate">
                 {theme.name}
               </div>
               {isActive && (

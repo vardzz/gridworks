@@ -13,22 +13,22 @@
 export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) {
   return (
     <div className="space-y-3">
-      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+      <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
         Color Overrides
       </label>
 
       {/* Primary Color */}
       <div className="flex items-center gap-3">
         <div className="flex-1">
-          <label className="text-xs text-neutral-600 mb-1 block">Primary</label>
+          <label className="text-xs text-prussian-blue-700 mb-1 block">Primary</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
               value={primaryColor || "#fafaf8"}
               onChange={(e) => onUpdate({ primary_color: e.target.value })}
-              className="w-8 h-8 rounded border border-neutral-200 cursor-pointer"
+              className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"
             />
-            <span className="text-xs text-neutral-500 font-mono">
+            <span className="text-xs text-alabaster-grey-300 font-mono">
               {primaryColor || "Theme default"}
             </span>
           </div>
@@ -36,7 +36,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
         {primaryColor && (
           <button
             onClick={() => onUpdate({ primary_color: null })}
-            className="text-xs text-neutral-400 hover:text-neutral-600 cursor-pointer mt-4"
+            className="text-xs text-alabaster-grey-400 hover:text-prussian-blue-700 cursor-pointer mt-4"
           >
             Reset
           </button>
@@ -46,15 +46,15 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
       {/* Accent Color */}
       <div className="flex items-center gap-3">
         <div className="flex-1">
-          <label className="text-xs text-neutral-600 mb-1 block">Accent</label>
+          <label className="text-xs text-prussian-blue-700 mb-1 block">Accent</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
               value={accentColor || "#2d5be3"}
               onChange={(e) => onUpdate({ accent_color: e.target.value })}
-              className="w-8 h-8 rounded border border-neutral-200 cursor-pointer"
+              className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"
             />
-            <span className="text-xs text-neutral-500 font-mono">
+            <span className="text-xs text-alabaster-grey-300 font-mono">
               {accentColor || "Theme default"}
             </span>
           </div>
@@ -62,7 +62,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
         {accentColor && (
           <button
             onClick={() => onUpdate({ accent_color: null })}
-            className="text-xs text-neutral-400 hover:text-neutral-600 cursor-pointer mt-4"
+            className="text-xs text-alabaster-grey-400 hover:text-prussian-blue-700 cursor-pointer mt-4"
           >
             Reset
           </button>

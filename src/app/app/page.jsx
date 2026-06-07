@@ -101,7 +101,7 @@ export default function AppPage() {
   if (!isHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-6 h-6 border-2 border-neutral-300 border-t-neutral-700 rounded-full" />
+        <div className="animate-spin w-6 h-6 border-2 border-alabaster-grey-400 border-t-prussian-blue-700 rounded-full" />
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function AppPage() {
       )}
 
       {!storageAvailable && (
-        <div className="px-4 py-2 bg-neutral-100 border-b text-xs text-neutral-600 text-center">
+        <div className="px-4 py-2 bg-alabaster-grey-800 border-b text-xs text-prussian-blue-700 text-center">
           Your schedule won&apos;t be saved between sessions in this browser
           mode.
         </div>

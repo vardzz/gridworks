@@ -29,18 +29,18 @@ export default function ExportOverlay({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-neutral-900">
+          <h3 className="text-lg font-semibold text-prussian-blue">
             Export Schedule
           </h3>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer text-xl leading-none"
+            className="text-alabaster-grey-400 hover:text-prussian-blue-700 transition-colors cursor-pointer text-xl leading-none"
           >
             ×
           </button>
         </div>
 
-        <p className="text-sm text-neutral-500">
+        <p className="text-sm text-alabaster-grey-300">
           Download your schedule as a high-definition image or print-ready PDF.
         </p>
 
@@ -49,7 +49,7 @@ export default function ExportOverlay({
           <button
             onClick={onExportPNG}
             disabled={isExporting}
-            className="w-full py-3 text-sm font-medium bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-3 text-sm font-medium bg-prussian-blue text-white rounded-lg hover:bg-prussian-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
           >
             {isExporting ? (
               <>
@@ -64,7 +64,7 @@ export default function ExportOverlay({
           {/* PDF Export */}
           <button
             onClick={onExportPDF}
-            className="w-full py-3 text-sm font-medium border border-neutral-300 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
+            className="w-full py-3 text-sm font-medium border border-alabaster-grey-400 rounded-lg hover:bg-alabaster-grey-900 transition-colors cursor-pointer"
           >
             Export as PDF
           </button>
