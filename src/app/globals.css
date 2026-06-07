@@ -1,26 +1,123 @@
+/* src/styles/globals.css */
 @import "tailwindcss";
 
+/* Tailwind v4 Configuration Registry Layer */
+@theme {
+  --color-gw-primary: var(--gw-bg-primary);
+  --color-gw-cell: var(--gw-bg-cell);
+  --color-gw-header: var(--gw-bg-header);
+  --color-gw-border: var(--gw-border-color);
+  --color-gw-text: var(--gw-text-primary);
+  --color-gw-muted: var(--gw-text-secondary);
+  --color-gw-accent: var(--gw-accent);
+
+  --font-display: var(--gw-font-display), monospace;
+  --font-body: var(--gw-font-body), sans-serif;
+
+  --border-radius-cell: var(--gw-cell-radius);
+  --border-width-cell: var(--gw-border-width);
+}
+
+/* -------------------------------------------------- */
+/* Core Layout Tokens Base Values (Minimalist Bureau Default) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gw-bg-primary: #fafaf8;
+  --gw-bg-cell: #ffffff;
+  --gw-bg-header: #f2f1ee;
+  --gw-border-color: #d6d4ce;
+  --gw-text-primary: #1a1a18;
+  --gw-text-secondary: #6b6a65;
+  --gw-accent: #2d5be3;
+  --gw-font-display: var(--font-ibm-plex-mono);
+  --gw-font-body: var(--font-inter);
+  --gw-cell-radius: 4px;
+  --gw-border-width: 1px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Theme Configuration Blocks */
+[data-theme="minimalist_bureau"] {
+  --gw-bg-primary: #fafaf8;
+  --gw-bg-cell: #ffffff;
+  --gw-bg-header: #f2f1ee;
+  --gw-border-color: #d6d4ce;
+  --gw-text-primary: #1a1a18;
+  --gw-text-secondary: #6b6a65;
+  --gw-accent: #2d5be3;
+  --gw-font-display: var(--font-ibm-plex-mono);
+  --gw-font-body: var(--font-inter);
+  --gw-cell-radius: 4px;
+  --gw-border-width: 1px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+[data-theme="pastel_planner"] {
+  --gw-bg-primary: #fef9f0;
+  --gw-bg-cell: #ffffff;
+  --gw-bg-header: #f7e8fa;
+  --gw-border-color: #e5c8f0;
+  --gw-text-primary: #2d1b3d;
+  --gw-text-secondary: #8b6da0;
+  --gw-accent: #c869e8;
+  --gw-font-display: var(--font-dm-sans);
+  --gw-font-body: var(--font-dm-sans);
+  --gw-cell-radius: 12px;
+  --gw-border-width: 1.5px;
+}
+
+[data-theme="neon_cyberpunk"] {
+  --gw-bg-primary: #0d0d14;
+  --gw-bg-cell: #13131f;
+  --gw-bg-header: #0a0a10;
+  --gw-border-color: #00ffd1;
+  --gw-text-primary: #e8e8ff;
+  --gw-text-secondary: #7b7baa;
+  --gw-accent: #ff2d78;
+  --gw-font-display: var(--font-space-mono);
+  --gw-font-body: var(--font-inter);
+  --gw-cell-radius: 0px;
+  --gw-border-width: 1px;
+}
+
+[data-theme="neon_cyberpunk"] .active-schedule-cell {
+  box-shadow: 0 0 8px var(--gw-border-color);
+}
+
+[data-theme="high_density_compact"] {
+  --gw-bg-primary: #ffffff;
+  --gw-bg-cell: #fafafa;
+  --gw-bg-header: #efefef;
+  --gw-border-color: #bbbbbb;
+  --gw-text-primary: #111111;
+  --gw-text-secondary: #555555;
+  --gw-accent: #1a73e8;
+  --gw-font-display: var(--font-inter);
+  --gw-font-body: var(--font-inter);
+  --gw-cell-radius: 2px;
+  --gw-border-width: 0.5px;
+}
+
+/* @media print Stylesheet Safety Layer */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body * {
+    visibility: hidden;
+  }
+
+  .schedule-canvas,
+  .schedule-canvas * {
+    visibility: visible;
+  }
+
+  .schedule-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    height: auto !important;
+    break-inside: avoid;
+    page-break-after: avoid;
+  }
 }
