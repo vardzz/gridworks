@@ -62,21 +62,29 @@ function extractFieldsFromBlock(block) {
   const codeMatch = block.match(/[A-Z]{2,4}\s?\d{3,4}[A-Z]?/);
   const subject_code = codeMatch ? codeMatch[0].replace(/\s+/g, "") : null;
 
+  // Create a copy of the block without the subject code to avoid matching it as room/etc.
+  let remainingBlock = block;
+  if (codeMatch) {
+    remainingBlock = block.replace(codeMatch[0], "");
+  }
+
   // Time range
-  const timeMatch = block.match(
+  const timeMatch = remainingBlock.match(
     /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/
   );
   const start_time = timeMatch ? normalizeTime(timeMatch[1]) : null;
   const end_time = timeMatch ? normalizeTime(timeMatch[2]) : null;
 
   // Days
-  const dayMatches = block.match(
-    /\b(MWF|TTh|T\/Th|MW|TR|MTWTHF|MTWTF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b/gi
+  const dayMatches = remainingBlock.match(
+    /\b(MWF|TTh|T\/Th|MW|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|[MTWFS])\b/gi
   );
   const days = dayMatches ? normalizeDays(dayMatches) : [];
 
   // Room
-  const roomMatch = block.match(/\b[A-Z]+-?\d{3,4}[A-Z]?\b/);
+  const roomMatch = remainingBlock.match(
+    /\b(?:COMLAB\s*\d|FIELD\d+|VRCCE-\d+|[A-Z]+-?\d{1,4}[A-Z]?)\b/i
+  );
   const room = roomMatch ? roomMatch[0] : null;
 
   // Subject title — heuristic: text between code and time/days, or remainder
@@ -86,17 +94,22 @@ function extractFieldsFromBlock(block) {
     const afterCode = block.substring(codeIndex + subject_code.length).trim();
     // Take text up to the first time or day pattern
     const titleEnd = afterCode.search(
-      /\d{1,2}:\d{2}|\b(MWF|TTh|MW|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b/i
+      /\d{1,2}:\d{2}|\b(MWF|TTh|MW|Mon|Tue|Wed|Thu|Fri|Sat|Sun|[MTWFS])\b/i
     );
     if (titleEnd > 0) {
       subject_title = afterCode.substring(0, titleEnd).trim();
     } else if (afterCode.length > 0 && afterCode.length < 80) {
       subject_title = afterCode;
     }
+
+    // Strip trailing units if present (two digits at the end of description, e.g. " 2 1" or " 3 0")
+    if (subject_title) {
+      subject_title = subject_title.replace(/\s+\d\s+\d$/, "").trim();
+    }
   }
 
   // Professor — heuristic: look for patterns like "Prof.", "Dr.", or capitalized names
-  const profMatch = block.match(
+  const profMatch = remainingBlock.match(
     /(?:Prof\.?|Dr\.?|Engr\.?|Instructor:?)\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i
   );
   const professor = profMatch ? profMatch[0].trim() : null;
