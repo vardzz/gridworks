@@ -22,7 +22,7 @@ export default function LandingPage() {
             </div>
             <Link
               href="/app"
-              className="inline-flex items-center justify-center bg-[#fca311] text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95"
+              className="inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95"
             >
               Start Building
             </Link>
@@ -47,7 +47,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center gap-4 xl:gap-6">
               <Link
                 href="/app"
-                className="bg-[#fca311] text-white px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold transition-all shadow-[0_4px_20px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
+                className="bg-[#fca311] text-black px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold transition-all shadow-[0_4px_20px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
               >
                 Try for free
               </Link>
@@ -247,18 +247,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Final CTA: The Contrast Void ──────────────────────────── */}
-        <section className="bg-prussian-blue pt-48 pb-32 px-6">
+        {/* ── Final CTA: Minimalist Editorial ──────────────────────────── */}
+        <section className="bg-white border-t border-alabaster-grey py-32 px-6">
           <div className="max-w-[1400px] mx-auto text-center flex flex-col items-center">
-            <h2 className="text-6xl md:text-8xl lg:text-[9rem] font-bold tracking-tighter text-white leading-[0.9] mb-12">
+            <h2 className="text-6xl md:text-8xl lg:text-[9rem] font-bold tracking-tighter text-black leading-[0.9] mb-12">
               Build your grid.
             </h2>
-            <p className="text-xl md:text-2xl text-prussian-blue-900 mb-20 max-w-2xl font-medium">
+            <p className="text-xl md:text-2xl text-prussian-blue-600 mb-20 max-w-2xl font-medium">
               Experience the difference of a tool crafted specifically for design-conscious students.
             </p>
             <Link
               href="/app"
-              className="bg-[#fca311] text-white px-12 py-6 rounded-full text-2xl font-bold transition-all shadow-[0_0_60px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
+              className="bg-[#fca311] text-black px-12 py-6 rounded-full text-2xl font-bold transition-all shadow-[0_0_60px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
             >
               Start Building Now
             </Link>
