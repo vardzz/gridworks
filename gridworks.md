@@ -30,7 +30,7 @@
 | **Project Name**        | Gridworks                                                                      |
 | **System Architecture** | 100% Client-Side Web Application (Serverless / Database-less)                  |
 | **Target Audience**     | Academic students requiring automated, highly customizable schedule formatting |
-| **Framework Decision**  | Vite + React (chosen over Next.js; see §5 rationale)                           |
+| **Framework Decision**  | Next.js (chosen for clean routing and standard structure)                      |
 
 ### Core Philosophy
 
@@ -214,16 +214,15 @@ Detection: `navigator.userAgent` mobile check + `'ontouchstart' in window`.
 
 ## 5. Technology Stack Selection
 
-### Framework Decision: Vite + React (not Next.js)
+### Framework Decision: Next.js
 
-Next.js static export adds unnecessary complexity for a fully client-side app with no routing, no API routes, and no SSR requirements. Vite provides faster HMR and a leaner build output.
+Next.js provides a structured file-based routing system which cleanly separates the landing page from the application tool, and integrates seamlessly with Tailwind CSS.
 
 ### Full Stack
 
 | Layer                    | Library / Tool             | Purpose                                    |
 | ------------------------ | -------------------------- | ------------------------------------------ |
-| **Build tool**           | Vite 5.x                   | Dev server, bundler                        |
-| **UI framework**         | React 18.x                 | Component rendering, state                 |
+| **Framework**            | Next.js 14+                | React framework, routing, bundler          |
 | **Styling**              | Tailwind CSS 3.x           | Utility classes + CSS variable integration |
 | **Component primitives** | shadcn/ui + Radix UI       | Accessible headless components             |
 | **PDF extraction**       | pdf.js (Mozilla)           | Vector text extraction from PDF files      |
