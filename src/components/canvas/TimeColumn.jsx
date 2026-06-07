@@ -15,16 +15,18 @@ export default function TimeColumn({
   endHour = 21,
   slotHeight = 48,
 }) {
-  const hours = [];
-  for (let h = startHour; h <= endHour; h++) {
-    hours.push(h);
+  const slots = [];
+  for (let h = startHour; h < endHour; h++) {
+    slots.push({ hour: h, minute: 0 });
+    slots.push({ hour: h, minute: 30 });
   }
+  slots.push({ hour: endHour, minute: 0 });
 
-  const formatHour = (h) => {
-    if (h === 0) return "12 AM";
-    if (h < 12) return `${h} AM`;
-    if (h === 12) return "12 PM";
-    return `${h - 12} PM`;
+  const formatTime = (h, m) => {
+    const period = h < 12 ? "AM" : "PM";
+    let displayHour = h % 12;
+    if (displayHour === 0) displayHour = 12;
+    return m === 0 ? `${displayHour}:00 ${period}` : `${displayHour}:30 ${period}`;
   };
 
   return (
@@ -34,15 +36,15 @@ export default function TimeColumn({
 
       {/* Time labels */}
       <div className="relative">
-        {hours.map((h) => {
-          const top = (h - startHour) * 2 * slotHeight; // 2 slots per hour
+        {slots.map(({ hour, minute }) => {
+          const top = (hour - startHour) * 2 * slotHeight + (minute === 30 ? slotHeight : 0);
           return (
             <div
-              key={h}
+              key={`${hour}-${minute}`}
               className="absolute right-2 text-[10px] text-[var(--gw-text-secondary)] font-body leading-none select-none"
               style={{ top: `${top}px`, transform: "translateY(-50%)" }}
             >
-              {formatHour(h)}
+              {formatTime(hour, minute)}
             </div>
           );
         })}
