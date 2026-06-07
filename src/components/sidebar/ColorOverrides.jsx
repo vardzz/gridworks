@@ -1,0 +1,73 @@
+// src/components/sidebar/ColorOverrides.jsx — Primary/accent color inputs
+"use client";
+
+/**
+ * Two color picker inputs for overriding Primary and Accent colors.
+ * A "Reset" link next to each clears the override back to null.
+ *
+ * @param {Object} props
+ * @param {string|null} props.primaryColor
+ * @param {string|null} props.accentColor
+ * @param {function} props.onUpdate — (patch) => void
+ */
+export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) {
+  return (
+    <div className="space-y-3">
+      <label className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+        Color Overrides
+      </label>
+
+      {/* Primary Color */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <label className="text-xs text-neutral-600 mb-1 block">Primary</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={primaryColor || "#fafaf8"}
+              onChange={(e) => onUpdate({ primary_color: e.target.value })}
+              className="w-8 h-8 rounded border border-neutral-200 cursor-pointer"
+            />
+            <span className="text-xs text-neutral-500 font-mono">
+              {primaryColor || "Theme default"}
+            </span>
+          </div>
+        </div>
+        {primaryColor && (
+          <button
+            onClick={() => onUpdate({ primary_color: null })}
+            className="text-xs text-neutral-400 hover:text-neutral-600 cursor-pointer mt-4"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
+      {/* Accent Color */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <label className="text-xs text-neutral-600 mb-1 block">Accent</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={accentColor || "#2d5be3"}
+              onChange={(e) => onUpdate({ accent_color: e.target.value })}
+              className="w-8 h-8 rounded border border-neutral-200 cursor-pointer"
+            />
+            <span className="text-xs text-neutral-500 font-mono">
+              {accentColor || "Theme default"}
+            </span>
+          </div>
+        </div>
+        {accentColor && (
+          <button
+            onClick={() => onUpdate({ accent_color: null })}
+            className="text-xs text-neutral-400 hover:text-neutral-600 cursor-pointer mt-4"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
