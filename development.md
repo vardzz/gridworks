@@ -49,57 +49,58 @@ All AI calls in this project use **Gemini 2.0 Flash** via the Google AI Studio R
 
 ```
 gridworks/
-├── app/                          (Next.js App Router)
-│   ├── layout.jsx                Root layout — fonts, global CSS, metadata
-│   ├── page.jsx                  Landing page
-│   └── app/
-│       └── page.jsx              Main app tool page
-├── components/
-│   ├── landing/
-│   │   ├── Navbar.jsx            Logo + "Try Gridworks" CTA
-│   │   ├── Hero.jsx              Headline, subtext, CTA button
-│   │   ├── HowItWorks.jsx        3-step process section
-│   │   ├── ThemePreview.jsx      Visual preview of the 4 themes
-│   │   └── Footer.jsx            Simple footer
-│   ├── intake/
-│   │   ├── IntakeScreen.jsx      Drop zone + file picker UI
-│   │   └── FileValidator.jsx     Type/size check logic as a hook or util
-│   ├── review/
-│   │   ├── ReviewScreen.jsx      Editable table of parsed entries
-│   │   └── ReviewRow.jsx         Single editable row component
-│   ├── canvas/
-│   │   ├── CanvasScreen.jsx      Main canvas layout wrapper
-│   │   ├── ScheduleGrid.jsx      The weekly grid structure
-│   │   ├── ScheduleCell.jsx      Individual subject block
-│   │   └── TimeColumn.jsx        Left-side time labels
-│   ├── sidebar/
-│   │   ├── StyleSidebar.jsx      Collapsible sidebar wrapper
-│   │   ├── ThemePicker.jsx       4 theme cards
-│   │   └── ColorOverrides.jsx    Primary/accent color inputs
-│   ├── export/
-│   │   └── ExportOverlay.jsx     PDF + PNG export buttons and mobile modal
-│   └── ui/                       shadcn/ui components live here
-├── hooks/
-│   ├── useAppState.js            Central state + auto-save to localStorage
-│   ├── useExport.js              PNG and PDF export logic
-│   └── useParser.js              Orchestrates the full parsing pipeline
-├── lib/
-│   ├── parser/
-│   │   ├── index.js              Main parseFile() orchestrator
-│   │   ├── pdfExtractor.js       pdf.js text extraction
-│   │   ├── ocrExtractor.js       Tesseract.js OCR
-│   │   ├── regexTokenizer.js     Regex field extraction
-│   │   ├── confidenceScorer.js   Score entries, produce warnings list
-│   │   ├── normalizer.js         Days/time normalization to canonical format
-│   │   └── llmFallback.js        Gemini pre-check + Gemini extraction
-│   ├── themes.js                 Token bundles for all 4 themes
-│   ├── storage.js                localStorage read/write/check helpers
-│   └── sanitize.js               Input sanitization helpers
-├── constants/
-│   └── defaults.js               Default state, version string, storage keys
-├── styles/
-│   └── globals.css               Tailwind import + all CSS token definitions
-└── .env.local                    NEXT_PUBLIC_GEMINI_KEY=your_key
+├── src/
+│   ├── app/                          (Next.js App Router)
+│   │   ├── layout.jsx                Root layout — fonts, global CSS, metadata
+│   │   ├── page.jsx                  Landing page
+│   │   └── app/
+│   │       └── page.jsx              Main app tool page
+│   ├── components/
+│   │   ├── landing/
+│   │   │   ├── Navbar.jsx            Logo + "Try Gridworks" CTA
+│   │   │   ├── Hero.jsx              Headline, subtext, CTA button
+│   │   │   ├── HowItWorks.jsx        3-step process section
+│   │   │   ├── ThemePreview.jsx      Visual preview of the 4 themes
+│   │   │   └── Footer.jsx            Simple footer
+│   │   ├── intake/
+│   │   │   ├── IntakeScreen.jsx      Drop zone + file picker UI
+│   │   │   └── FileValidator.jsx     Type/size check logic as a hook or util
+│   │   ├── review/
+│   │   │   ├── ReviewScreen.jsx      Editable table of parsed entries
+│   │   │   └── ReviewRow.jsx         Single editable row component
+│   │   ├── canvas/
+│   │   │   ├── CanvasScreen.jsx      Main canvas layout wrapper
+│   │   │   ├── ScheduleGrid.jsx      The weekly grid structure
+│   │   │   ├── ScheduleCell.jsx      Individual subject block
+│   │   │   └── TimeColumn.jsx        Left-side time labels
+│   │   ├── sidebar/
+│   │   │   ├── StyleSidebar.jsx      Collapsible sidebar wrapper
+│   │   │   ├── ThemePicker.jsx       4 theme cards
+│   │   │   └── ColorOverrides.jsx    Primary/accent color inputs
+│   │   ├── export/
+│   │   │   └── ExportOverlay.jsx     PDF + PNG export buttons and mobile modal
+│   │   └── ui/                       shadcn/ui components live here
+│   ├── hooks/
+│   │   ├── useAppState.js            Central state + auto-save to localStorage
+│   │   ├── useExport.js              PNG and PDF export logic
+│   │   └── useParser.js              Orchestrates the full parsing pipeline
+│   ├── lib/
+│   │   ├── parser/
+│   │   │   ├── index.js              Main parseFile() orchestrator
+│   │   │   ├── pdfExtractor.js       pdf.js text extraction
+│   │   │   ├── ocrExtractor.js       Tesseract.js OCR
+│   │   │   ├── regexTokenizer.js     Regex field extraction
+│   │   │   ├── confidenceScorer.js   Score entries, produce warnings list
+│   │   │   ├── normalizer.js         Days/time normalization to canonical format
+│   │   │   └── llmFallback.js        Gemini pre-check + Gemini extraction
+│   │   ├── themes.js                 Token bundles for all 4 themes
+│   │   ├── storage.js                localStorage read/write/check helpers
+│   │   └── sanitize.js               Input sanitization helpers
+│   ├── constants/
+│   │   └── defaults.js               Default state, version string, storage keys
+│   └── styles/
+│       └── globals.css               Tailwind import + all CSS token definitions
+├── .env.local                        NEXT_PUBLIC_GEMINI_KEY=your_key
 ```
 
 ---
@@ -110,7 +111,7 @@ gridworks/
 
 ### 1.1 Initialize
 
-Create the Next.js project with App Router and Tailwind included. During setup: yes to TypeScript is optional (JS is fine), yes to Tailwind, yes to App Router, no to `src/` directory (keep flat).
+Create the Next.js project with App Router and Tailwind included. During setup: yes to TypeScript is optional (JS is fine), yes to Tailwind, yes to App Router, yes to `src/` directory.
 
 ### 1.2 Install dependencies
 
@@ -535,7 +536,7 @@ Showcases all four themes. Grid of four cards, each showing the theme name and a
 
 Minimal. Project name, "Built with Next.js", optionally a link to your thesis or GitHub.
 
-### 10.6 `app/page.jsx`
+### 10.6 `src/app/page.jsx`
 
 Assembles: `<Navbar>`, `<Hero>`, `<HowItWorks>`, `<ThemePreview>`, `<Footer>`. No logic — purely compositional.
 
