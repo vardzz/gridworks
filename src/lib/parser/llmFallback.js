@@ -75,8 +75,14 @@ export async function extractWithLLM(rawText) {
 
   const prompt = `You are a university schedule parser. Extract all class schedule entries from the text below.
 Return ONLY a valid JSON array of objects. Each object must have these exact keys:
-subject_code, subject_title, professor, room, days (array of full day names like "Monday"), start_time (HH:MM 24-hour), end_time (HH:MM 24-hour).
+subject_code, subject_title, professor, room, days (array of full day names like "Monday"), start_time (HH:MM 24-hour format, e.g. "13:30"), end_time (HH:MM 24-hour format, e.g. "15:00").
 If a field cannot be determined, use null. Do not include any explanation or markdown fencing.
+
+CRITICAL INSTRUCTIONS:
+1. ONLY extract actual classes/courses from the schedule table. Do NOT extract miscellaneous text like student info, fees, terms, remarks, or registration instructions.
+2. If a course has multiple schedules/slots (e.g. Wed 4:00pm-7:00pm and Fri 2:30pm-4:30pm), you MUST split them into separate objects in the array.
+3. Normalize days to their full names (e.g., "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday").
+4. Normalize times to 24-hour HH:MM format (e.g. "04:00 PM" -> "16:00").
 
 TEXT:
 ${rawText}`;

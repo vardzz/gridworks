@@ -94,26 +94,30 @@ export async function parseFile(file, options = {}) {
     };
   }
 
-  // ── 5. Regex tokenization ─────────────────────────────────────────
-  let entries = tokenize(rawText);
+  // ── 5. LLM Extraction / Regex Tokenization ─────────────────────────
+  let entries = [];
+  let confidence = 0;
+  const hasGeminiKey = !!process.env.NEXT_PUBLIC_GEMINI_KEY;
 
-  // ── 6. Confidence scoring ─────────────────────────────────────────
-  let confidence = scoreDocument(entries);
-
-  // ── 7. LLM fallback if confidence < 0.7 ───────────────────────────
-  if (confidence < 0.7 && !skipLLM) {
+  if (hasGeminiKey && !skipLLM) {
     try {
       const llmEntries = await extractWithLLM(rawText);
-      const llmConfidence = scoreDocument(llmEntries);
-
-      // Use whichever result scored higher
-      if (llmConfidence > confidence) {
+      if (llmEntries && llmEntries.length > 0) {
         entries = llmEntries;
-        confidence = llmConfidence;
+        confidence = 1.0; // 100% confidence level
+      } else {
+        // Fallback to regex if LLM returned empty array
+        entries = tokenize(rawText);
+        confidence = scoreDocument(entries);
       }
-    } catch {
-      // Silently fall back to regex results — PRD §12.1
+    } catch (e) {
+      console.warn("Gemini extraction failed, falling back to regex parser:", e);
+      entries = tokenize(rawText);
+      confidence = scoreDocument(entries);
     }
+  } else {
+    entries = tokenize(rawText);
+    confidence = scoreDocument(entries);
   }
 
   // ── 8. Assign IDs, sanitize ───────────────────────────────────────
