@@ -33,27 +33,27 @@ export default function LandingPage() {
       <main className="flex-1 pt-20">
         
         {/* ── Hero Section: Asymmetrical & Editorial ─────────────────── */}
-        <section className="relative w-full px-6 py-24 md:py-48 max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-20 overflow-hidden">
+        <section className="relative w-full px-6 py-12 lg:py-0 max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 overflow-hidden min-h-[calc(100vh-80px)]">
           
           {/* Left: Typography */}
-          <div className="w-full md:w-1/2 flex flex-col items-start z-10">
-            <h1 className="text-6xl md:text-8xl lg:text-[7.5rem] font-bold tracking-tighter text-black leading-[0.9] mb-8">
+          <div className="w-full lg:w-1/2 flex flex-col items-start z-10 pt-4 lg:pt-0 lg:self-start lg:mt-32">
+            <h1 className="text-6xl md:text-7xl xl:text-[7.5rem] font-bold tracking-tighter text-black leading-[0.9] mb-6 xl:mb-8 shrink-0">
               Schedule.<br />
               <span className="text-prussian-blue-300">Mastered.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-prussian-blue-600 max-w-lg leading-snug mb-12 font-medium">
+            <p className="text-lg md:text-xl xl:text-2xl text-prussian-blue-600 max-w-lg leading-snug mb-8 xl:mb-12 font-medium">
               We transformed the chaotic registration process into an elegant, print-ready grid. Instantly. Privately. Beautifully.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4 xl:gap-6">
               <Link
                 href="/app"
-                className="bg-orange text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-orange-600 transition-all shadow-[0_4px_20px_rgba(252,163,17,0.3)] hover:-translate-y-1"
+                className="bg-orange text-white px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold hover:bg-orange-600 transition-all shadow-[0_4px_20px_rgba(252,163,17,0.3)] hover:-translate-y-1"
               >
                 Try for free
               </Link>
               <Link
                 href="#features"
-                className="text-prussian-blue-600 font-bold text-lg hover:text-black transition-colors underline decoration-2 underline-offset-4"
+                className="text-prussian-blue-600 font-bold text-base xl:text-lg hover:text-black transition-colors underline decoration-2 underline-offset-4"
               >
                 See how
               </Link>
@@ -61,25 +61,25 @@ export default function LandingPage() {
           </div>
 
           {/* Right: Asymmetrical Floating Composition */}
-          <div className="w-full md:w-1/2 relative h-[500px] md:h-[700px] flex items-center justify-center pointer-events-none">
+          <div className="w-full lg:w-1/2 relative h-[350px] sm:h-[450px] lg:h-[550px] xl:h-[650px] flex items-center justify-center pointer-events-none origin-center scale-75 sm:scale-90 lg:scale-100">
             {/* The Grid abstraction */}
             <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px),linear-gradient(to_bottom,#e5e5e5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_10%,transparent_100%)] opacity-40" />
             
             {/* Pristine Cards */}
-            <div className="relative z-10 w-full max-w-md">
+            <div className="relative z-10 w-full max-w-md h-[400px]">
               <div className="absolute top-0 right-10 w-72 h-40 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-2xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0">
                 <div className="w-8 h-2 bg-prussian-blue mb-4 rounded-full" />
                 <div className="text-3xl font-bold tracking-tight text-black">CS 101</div>
                 <div className="text-sm font-medium text-prussian-blue-600 mt-1">9:00 AM • Lecture Hall</div>
               </div>
               
-              <div className="absolute top-32 left-0 w-80 h-48 bg-prussian-blue shadow-2xl p-6 rounded-2xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4">
+              <div className="absolute top-20 left-0 w-80 h-48 bg-prussian-blue shadow-2xl p-6 rounded-2xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4">
                 <div className="w-12 h-2 bg-orange mb-4 rounded-full" />
                 <div className="text-4xl font-bold tracking-tight text-white">Advanced<br/>Design</div>
                 <div className="text-sm font-medium text-prussian-blue-900 mt-2">1:00 PM • Studio</div>
               </div>
 
-              <div className="absolute top-64 right-0 w-64 h-32 bg-alabaster-grey-900 border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0">
+              <div className="absolute top-40 right-0 w-64 h-32 bg-alabaster-grey-900 border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0">
                 <div className="w-6 h-2 bg-black mb-3 rounded-full" />
                 <div className="text-2xl font-bold tracking-tight text-black">Physics II</div>
                 <div className="text-sm font-medium text-prussian-blue-600 mt-1">3:30 PM • Lab 4</div>
