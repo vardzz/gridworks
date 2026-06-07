@@ -6,7 +6,7 @@ const SUBJECT_CODE_RE = /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/g;
 const TIME_RANGE_RE =
   /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/g;
 const DAYS_RE =
-  /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|[MTWFS])\b/gi;
+  /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
 const ROOM_RE = /\b[A-Z]+-?\d{3,4}[A-Z]?\b/g;
 
 /**
@@ -106,7 +106,7 @@ function extractFieldsFromBlock(block) {
   const daysBlock = remainingBlock.substring(0, firstTimeIndex);
 
   const dayMatches = daysBlock.match(
-    /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|[MTWFS])\b/gi
+    /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi
   );
   const days = dayMatches ? normalizeDays(dayMatches) : [];
 
@@ -161,7 +161,7 @@ function extractTitle(block, subject_code) {
   const afterCode = block.substring(codeIndex + subject_code.length).trim();
 
   const titleEnd = afterCode.search(
-    /\d{1,2}:\d{2}|\b(MWF|TTh|MW|MTh|WTh|TR|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Th|[MTWFS])\b/i
+    /\d{1,2}:\d{2}|\b(MWF|TTh|MW|MTh|WTh|TR|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Th|Sa|Su|[MTWFS])\b/i
   );
 
   let subject_title = null;
