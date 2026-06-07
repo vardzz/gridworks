@@ -26,7 +26,9 @@ export function tokenize(rawText) {
   let currentBlock = [];
 
   for (const line of lines) {
-    const hasSubjectCode = SUBJECT_CODE_RE.test(line);
+    const trimmed = line.trim();
+    const codeIndex = trimmed.search(SUBJECT_CODE_RE);
+    const hasSubjectCode = codeIndex >= 0 && codeIndex < 6;
     SUBJECT_CODE_RE.lastIndex = 0; // Reset regex state
 
     if (hasSubjectCode && currentBlock.length > 0) {
