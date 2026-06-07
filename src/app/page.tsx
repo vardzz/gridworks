@@ -5,7 +5,7 @@ export default function LandingPage() {
   const themes = Object.values(THEME_PRESETS);
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans selection:bg-orange selection:text-white flex flex-col">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-[#fca311] selection:text-white flex flex-col">
       
       {/* ── Navbar: Ultra Minimal ──────────────────────────────────── */}
       <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-alabaster-grey transition-all">
@@ -16,13 +16,13 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-prussian-blue-600">
-              <Link href="#features" className="hover:text-orange transition-colors">Features</Link>
-              <Link href="#themes" className="hover:text-orange transition-colors">Themes</Link>
-              <Link href="#faq" className="hover:text-orange transition-colors">FAQ</Link>
+              <Link href="#features" className="hover:text-[#fca311] transition-colors">Features</Link>
+              <Link href="#themes" className="hover:text-[#fca311] transition-colors">Themes</Link>
+              <Link href="#faq" className="hover:text-[#fca311] transition-colors">FAQ</Link>
             </div>
             <Link
               href="/app"
-              className="inline-flex items-center justify-center bg-orange text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-orange-600 transition-colors shadow-sm"
+              className="inline-flex items-center justify-center bg-[#fca311] text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95"
             >
               Start Building
             </Link>
@@ -47,7 +47,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center gap-4 xl:gap-6">
               <Link
                 href="/app"
-                className="bg-orange text-white px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold hover:bg-orange-600 transition-all shadow-[0_4px_20px_rgba(252,163,17,0.3)] hover:-translate-y-1"
+                className="bg-[#fca311] text-white px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold transition-all shadow-[0_4px_20px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
               >
                 Try for free
               </Link>
@@ -74,7 +74,7 @@ export default function LandingPage() {
               </div>
               
               <div className="absolute top-20 left-0 w-80 h-48 bg-prussian-blue shadow-2xl p-6 rounded-2xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4">
-                <div className="w-12 h-2 bg-orange mb-4 rounded-full" />
+                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
                 <div className="text-4xl font-bold tracking-tight text-white">Advanced<br/>Design</div>
                 <div className="text-sm font-medium text-prussian-blue-900 mt-2">1:00 PM • Studio</div>
               </div>
@@ -117,7 +117,7 @@ export default function LandingPage() {
               
               {/* Feature 1 */}
               <div className="group">
-                <div className="text-sm font-bold text-orange tracking-widest uppercase mb-4">01 — Intake</div>
+                <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">01 — Intake</div>
                 <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Drop your raw data.</h3>
                 <div className="aspect-[4/3] bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02]">
                   <div className="w-full max-w-sm bg-white border border-alabaster-grey shadow-2xl rounded-xl p-8 text-center">
@@ -132,7 +132,7 @@ export default function LandingPage() {
 
               {/* Feature 2 */}
               <div className="group">
-                <div className="text-sm font-bold text-orange tracking-widest uppercase mb-4">02 — Review</div>
+                <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">02 — Review</div>
                 <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Edit with precision.</h3>
                 <div className="aspect-[4/3] bg-prussian-blue border border-prussian-blue-600 p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02]">
                   <div className="w-full h-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
@@ -142,7 +142,7 @@ export default function LandingPage() {
                     <div className="p-6 flex flex-col gap-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="h-16 border border-alabaster-grey rounded-lg flex items-center px-4 gap-4">
-                          <div className={`w-4 h-4 rounded-full ${i === 1 ? 'bg-orange' : 'bg-prussian-blue'}`} />
+                          <div className={`w-4 h-4 rounded-full ${i === 1 ? 'bg-[#fca311]' : 'bg-prussian-blue'}`} />
                           <div className="flex-1 h-2 bg-alabaster-grey-900 rounded-full" />
                           <div className="w-24 h-2 bg-alabaster-grey-900 rounded-full" />
                         </div>
@@ -154,7 +154,7 @@ export default function LandingPage() {
 
               {/* Feature 3 */}
               <div className="group">
-                <div className="text-sm font-bold text-orange tracking-widest uppercase mb-4">03 — Export</div>
+                <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">03 — Export</div>
                 <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Print-ready aesthetics.</h3>
                 <div className="aspect-[4/3] bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02]">
                   <div className="w-full h-full bg-white border border-alabaster-grey shadow-2xl flex">
@@ -231,7 +231,7 @@ export default function LandingPage() {
                 { q: "What formats can I upload?", a: "You can drop PDF registration files downloaded from most standard university portals, or simply paste the raw text payload directly into the intake engine." },
               ].map((faq, i) => (
                 <details key={i} className="group border-b border-alabaster-grey py-8 open:pb-12 transition-all cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-                  <summary className="flex items-center justify-between text-2xl md:text-3xl font-bold tracking-tight text-black outline-none hover:text-orange transition-colors">
+                  <summary className="flex items-center justify-between text-2xl md:text-3xl font-bold tracking-tight text-black outline-none hover:text-[#fca311] transition-colors">
                     {faq.q}
                     <div className="text-prussian-blue-600 font-normal group-open:rotate-45 transition-transform duration-300">+</div>
                   </summary>
@@ -255,7 +255,7 @@ export default function LandingPage() {
             </p>
             <Link
               href="/app"
-              className="bg-orange text-white px-12 py-6 rounded-full text-2xl font-bold hover:bg-white hover:text-black transition-all shadow-[0_0_60px_rgba(252,163,17,0.3)] hover:shadow-none hover:scale-105"
+              className="bg-[#fca311] text-white px-12 py-6 rounded-full text-2xl font-bold transition-all shadow-[0_0_60px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
             >
               Start Building Now
             </Link>
@@ -281,16 +281,16 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-bold text-black mb-6 tracking-tight">Product</h4>
                 <ul className="space-y-4 font-medium">
-                  <li><Link href="/app" className="text-prussian-blue-600 hover:text-orange transition-colors">App</Link></li>
-                  <li><Link href="#features" className="text-prussian-blue-600 hover:text-orange transition-colors">Features</Link></li>
-                  <li><Link href="#themes" className="text-prussian-blue-600 hover:text-orange transition-colors">Themes</Link></li>
+                  <li><Link href="/app" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">App</Link></li>
+                  <li><Link href="#features" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Features</Link></li>
+                  <li><Link href="#themes" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Themes</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-bold text-black mb-6 tracking-tight">Legal</h4>
                 <ul className="space-y-4 font-medium">
-                  <li><a href="#" className="text-prussian-blue-600 hover:text-orange transition-colors">Privacy</a></li>
-                  <li><a href="#" className="text-prussian-blue-600 hover:text-orange transition-colors">Terms</a></li>
+                  <li><a href="#" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Privacy</a></li>
+                  <li><a href="#" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Terms</a></li>
                 </ul>
               </div>
             </div>
