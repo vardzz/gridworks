@@ -3,10 +3,10 @@
 /**
  * Extracts text content from a PDF file using pdf.js.
  * Dynamically imports pdfjs-dist to avoid DOMMatrix reference during SSR.
- * Loops through every page and concatenates all text items.
+ * Grouped items by y-coordinate into tab-separated lines for table parsing.
  *
  * @param {File} file — a PDF File object from the drop zone or file picker
- * @returns {Promise<string>} — the raw concatenated text
+ * @returns {Promise<string>} — the raw concatenated text, structured by lines and tabs
  */
 export async function extractTextFromPDF(file) {
   const pdfjsLib = await import("pdfjs-dist");
@@ -30,7 +30,7 @@ export async function extractTextFromPDF(file) {
       const yB = b.transform[5];
       // Use 3px tolerance for items on the same baseline
       if (Math.abs(yA - yB) > 3) {
-        return yB - yA;
+        return yB - yA; // Sort top to bottom (Y descending)
       }
       return a.transform[4] - b.transform[4];
     });
@@ -55,49 +55,15 @@ export async function extractTextFromPDF(file) {
     }
     if (currentRow.length > 0) rows.push(currentRow);
 
-    // Merge continuation rows into their parent row based on X coordinate
-    const mergedRows = [];
-    let baseRow = null;
-
-    for (const row of rows) {
-      const validItems = row.filter((i) => i.str !== "");
-      if (validItems.length === 0) continue;
-
-      const firstStr = validItems[0].str;
-      // Detect new schedule entry (has subject code OR has many columns)
-      const isNewEntry =
-        /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/.test(firstStr) || validItems.length > 4;
-
-      if (isNewEntry || !baseRow) {
-        baseRow = validItems;
-        mergedRows.push(baseRow);
-      } else {
-        // Continuation row: find the closest X in baseRow and append it
-        for (const item of validItems) {
-          let closestMatch = null;
-          let minDiff = Infinity;
-          for (const baseItem of baseRow) {
-            const diff = Math.abs(baseItem.x - item.x);
-            if (diff < minDiff) {
-              minDiff = diff;
-              closestMatch = baseItem;
-            }
-          }
-          // If within 80px, it's definitely the same column
-          if (closestMatch && minDiff < 80) {
-            closestMatch.str += " " + item.str;
-          } else {
-            baseRow.push(item);
-          }
-        }
-      }
-    }
-
-    // Reconstruct page text from merged rows
+    // Reconstruct page text from rows
     let pageText = "";
-    for (const row of mergedRows) {
+    for (const row of rows) {
+      // Ensure strictly sorted by X within the tolerant Y bucket
       row.sort((a, b) => a.x - b.x);
-      pageText += row.map((i) => i.str).join(" ") + "\n";
+      const validItems = row.filter((i) => i.str !== "");
+      if (validItems.length > 0) {
+        pageText += validItems.map((i) => i.str).join("\t") + "\n";
+      }
     }
 
     fullText += pageText + "\n";
@@ -105,4 +71,3 @@ export async function extractTextFromPDF(file) {
 
   return fullText;
 }
-

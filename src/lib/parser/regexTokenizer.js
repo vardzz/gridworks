@@ -1,42 +1,103 @@
-// src/lib/parser/regexTokenizer.js — Regex field extraction (PRD §9.1 Stage 1)
+// src/lib/parser/regexTokenizer.js — Tabular structure parser & Regex fallback
+
 import { normalizeDays, normalizeTime } from "./normalizer";
 
-// ── Regex patterns from PRD §9.1 ──────────────────────────────────────
+// ── Regex patterns for OCR fallback ──────────────────────────────────────
 const SUBJECT_CODE_RE = /\b([A-Z]{2,5}\s?\d{1,4}[A-Z]?)\b/g;
 const TIME_RANGE_RE = /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—\/]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/gi;
 const DAYS_RE = /\b(MWF|TTh|T\/Th|M\/Th|T\/F|MW|MTh|WTh|TR|TF|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
 const ROOM_RE = /\b(?:COMLAB\s*\d+|FIELD\s*\d+|VRCCE-?\d+|GK-?\d+|[A-Z]{2,5}\s?-?\d{1,4}[A-Z]?|\d{3,4})\b/gi;
 
 /**
- * Parses raw text into schedule entries using Token Clustering Maps 
- * and Micro-Segment Parsing.
+ * Parses raw text into schedule entries.
+ * Attempts deterministic tabular parsing first (if tabs exist).
+ * Falls back to OCR Token Clustering heuristic if no headers are found.
  *
  * @param {string} rawText — raw extracted text from PDF or OCR
- * @returns {Array<Object>} — array of partial entry objects
+ * @returns {Array<Object>} — array of raw or partial entry objects
  */
 export function tokenize(rawText) {
   if (!rawText || typeof rawText !== "string") return [];
 
-  // 1. Identify all anchors (Subject Codes)
+  const lines = rawText.split('\n').map(line => line.trim()).filter(Boolean);
+  if (lines.length > 0) {
+    // 1. Column header detection
+    const headerLine = lines[0];
+    const headers = headerLine.split('\t').map(h => h.trim().toLowerCase());
+    
+    let COURSE_CODE_INDEX = -1;
+    let COURSE_TITLE_INDEX = -1;
+    let DAY_INDEX = -1;
+    let TIME_INDEX = -1;
+    let ROOM_INDEX = -1;
+
+    for (let i = 0; i < headers.length; i++) {
+      const h = headers[i];
+      if (h.includes("course code") || h === "code" || h.includes("subject code") || h === "subj code") {
+        COURSE_CODE_INDEX = i;
+      } else if (h.includes("course description") || h === "description" || h === "subject" || h === "title" || h === "course title") {
+        COURSE_TITLE_INDEX = i;
+      } else if (h === "day" || h === "days") {
+        DAY_INDEX = i;
+      } else if (h === "time" || h === "time slot") {
+        TIME_INDEX = i;
+      } else if (h === "room" || h.includes("room no") || h === "venue") {
+        ROOM_INDEX = i;
+      }
+    }
+
+    if (COURSE_CODE_INDEX !== -1) {
+      // Run tabular extraction
+      const entries = [];
+      let currentEntry = null;
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i];
+        const cells = row.split('\t').map(c => c.trim());
+
+        const courseCode = COURSE_CODE_INDEX !== -1 && cells[COURSE_CODE_INDEX] ? cells[COURSE_CODE_INDEX] : null;
+
+        if (courseCode && /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/i.test(courseCode)) {
+          // New Entry
+          currentEntry = {
+            course_code: courseCode,
+            course_title: COURSE_TITLE_INDEX !== -1 && cells[COURSE_TITLE_INDEX] ? cells[COURSE_TITLE_INDEX] : null,
+            days_raw: DAY_INDEX !== -1 && cells[DAY_INDEX] ? cells[DAY_INDEX] : null,
+            times_raw: [],
+            rooms_raw: []
+          };
+          
+          if (TIME_INDEX !== -1 && cells[TIME_INDEX]) currentEntry.times_raw.push(cells[TIME_INDEX]);
+          if (ROOM_INDEX !== -1 && cells[ROOM_INDEX]) currentEntry.rooms_raw.push(cells[ROOM_INDEX]);
+          
+          entries.push(currentEntry);
+        } else if (currentEntry) {
+          // Continuation row
+          if (TIME_INDEX !== -1 && cells[TIME_INDEX]) currentEntry.times_raw.push(cells[TIME_INDEX]);
+          if (ROOM_INDEX !== -1 && cells[ROOM_INDEX]) currentEntry.rooms_raw.push(cells[ROOM_INDEX]);
+        }
+      }
+      return entries;
+    }
+  }
+
+  // ── OCR Regex Fallback ──────────────────────────────────────────────
+  return tokenizeHeuristic(rawText);
+}
+
+function tokenizeHeuristic(rawText) {
   const subjects = [];
   let match;
   SUBJECT_CODE_RE.lastIndex = 0;
   
-  // Known room prefixes to filter out false-positive subject codes
   const roomPrefixes = ["BCH", "COMLAB", "FIELD", "VRCCE", "GK", "ROOM", "LAB"];
 
   while ((match = SUBJECT_CODE_RE.exec(rawText)) !== null) {
     const code = match[1];
-    
-    // Reject if it is a time (e.g. TF 10:00am)
     const after = rawText.substring(match.index + code.length, match.index + code.length + 10);
     if (/^\s*:\s*\d{2}/.test(after)) continue;
-
-    // Reject if the code is actually a known room
     const isRoom = roomPrefixes.some(prefix => code.toUpperCase().startsWith(prefix));
     if (isRoom) continue;
-
-    // Reject if it starts with a number (e.g. Section like 3CS-A)
     if (/^\d/.test(code)) continue;
 
     subjects.push({ code, index: match.index });
@@ -44,7 +105,6 @@ export function tokenize(rawText) {
 
   if (subjects.length === 0) return [];
 
-  // 2. Proximity Indexing
   const clusters = subjects.map((subj, i) => {
     const nextIndex = subjects[i + 1] ? subjects[i + 1].index : rawText.length;
     const block = rawText.substring(subj.index, nextIndex);
@@ -62,17 +122,13 @@ function parseSubjectBlock(subject_code, block) {
   const subject_title = extractTitle(block, subject_code);
   const cleanCode = subject_code.replace(/\s+/g, "");
 
-  // 3. Sequential Pairing & Micro-Segment Parsing
   TIME_RANGE_RE.lastIndex = 0;
   while ((match = TIME_RANGE_RE.exec(block)) !== null) {
     const timeIndex = match.index;
-    
-    // Create bounding window (40 chars before, 60 after)
     const windowStart = Math.max(0, timeIndex - 40);
     const windowEnd = Math.min(block.length, timeIndex + match[0].length + 60);
     const localWindow = block.substring(windowStart, windowEnd);
     
-    // Local Matching strictly within window
     const roomMatch = localWindow.match(ROOM_RE);
     const room = roomMatch ? roomMatch[0] : null;
     
@@ -91,7 +147,6 @@ function parseSubjectBlock(subject_code, block) {
     });
   }
 
-  // If no time matches, bind loose metadata to the subject
   if (segments.length === 0) {
     const roomMatch = block.match(ROOM_RE);
     const dayMatches = block.match(DAYS_RE);
@@ -127,7 +182,6 @@ function extractTitle(block, subject_code) {
   }
 
   if (subject_title) {
-    // Strip Lecture and Lab units at the end of the title string (e.g. " 3 0" or " 2.0 1.0")
     subject_title = subject_title.replace(/\s+\d+(?:\.\d+)?\s+\d+(?:\.\d+)?\s*$/, "").trim();
   }
 

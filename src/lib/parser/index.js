@@ -3,7 +3,8 @@ import { extractTextFromPDF } from "./pdfExtractor";
 import { extractTextFromImage } from "./ocrExtractor";
 import { tokenize } from "./regexTokenizer";
 import { scoreDocument } from "./confidenceScorer";
-import { preCheckIsSchedule, extractWithLLM } from "./llmFallback";
+import { preCheckIsRegistrationForm } from "./llmFallback";
+import { normalizeEntries } from "./normalizer";
 import { sanitizeEntry } from "@/lib/sanitize";
 
 /**
@@ -57,8 +58,8 @@ export async function parseFile(file, options = {}) {
 
   // ── 2. Image pre-check ────────────────────────────────────────────
   if (isImage && !skipPreCheck) {
-    const check = await preCheckIsSchedule(file);
-    if (!check.isSchedule || (check.confidence !== undefined && check.confidence < 0.75)) {
+    const check = await preCheckIsRegistrationForm(file);
+    if (!check.isValid) {
       return {
         entries: [],
         confidence: 0,
@@ -80,15 +81,7 @@ export async function parseFile(file, options = {}) {
 
   // ── 4. Empty PDF detection — fallback to OCR ──────────────────────
   if (!isImage) {
-    // Heuristic Vector Validation: Check for actual valid anchors
-    const timeAnchorMatches = rawText.match(/((?:1[0-2]|0?[1-9]):[0-5][0-9])/g);
-    const subjectMatches = rawText.match(/\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/g);
-    const hasValidText = (timeAnchorMatches && timeAnchorMatches.length > 0) || 
-                         (subjectMatches && subjectMatches.length > 0);
-    
-    const isJunkBytecode = rawText.includes("\ufffd") || rawText.replace(/\s+/g, "").length < 20;
-
-    if (!hasValidText || isJunkBytecode || (rawText.trim().length < 50 && file.size > 100 * 1024)) {
+    if (rawText.trim().length < 50 && file.size > 100 * 1024) {
       console.warn("Pre-flight failed: Image-based or unreadable PDF detected. Routing to OCR.");
       try {
         rawText = await extractTextFromImage(file, onProgress);
@@ -109,31 +102,10 @@ export async function parseFile(file, options = {}) {
     };
   }
 
-  // ── 5. LLM Extraction / Regex Tokenization ─────────────────────────
-  let entries = [];
-  let confidence = 0;
-  const hasGeminiKey = !!process.env.NEXT_PUBLIC_GEMINI_KEY;
-
-  if (hasGeminiKey && !skipLLM) {
-    try {
-      const llmEntries = await extractWithLLM(rawText);
-      if (llmEntries && llmEntries.length > 0) {
-        entries = llmEntries;
-        confidence = 1.0; // 100% confidence level
-      } else {
-        // Fallback to regex if LLM returned empty array
-        entries = tokenize(rawText);
-        confidence = scoreDocument(entries);
-      }
-    } catch (e) {
-      console.warn("Gemini extraction failed, falling back to regex parser:", e);
-      entries = tokenize(rawText);
-      confidence = scoreDocument(entries);
-    }
-  } else {
-    entries = tokenize(rawText);
-    confidence = scoreDocument(entries);
-  }
+  // ── 5. Tokenization & Normalization ──────────────────────────────
+  let entries = tokenize(rawText);
+  entries = normalizeEntries(entries);
+  let confidence = scoreDocument(entries);
 
   // ── 8. Assign IDs, sanitize ───────────────────────────────────────
   const finalEntries = entries.map((entry) => {

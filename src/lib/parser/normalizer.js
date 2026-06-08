@@ -161,3 +161,63 @@ export function normalizeTime(timeStr) {
 
   return null;
 }
+
+/**
+ * Normalizes an array of raw entry objects, handling multi-slot splitting.
+ *
+ * @param {Array<Object>} rawEntries
+ * @returns {Array<Object>} — final normalized entry array ready for confidence scoring
+ */
+export function normalizeEntries(rawEntries) {
+  const result = [];
+
+  for (const raw of rawEntries) {
+    // If it came from the regex fallback, it already has normalized keys
+    if (raw.subject_code && !raw.times_raw) {
+      result.push(raw);
+      continue;
+    }
+
+    const baseEntry = {
+      subject_code: raw.course_code || null,
+      subject_title: raw.course_title || null,
+      professor: raw.professor || null,
+      days: raw.days_raw ? normalizeDays(raw.days_raw) : [],
+      color_override: null
+    };
+
+    if (!raw.times_raw || raw.times_raw.length === 0) {
+      result.push({
+        ...baseEntry,
+        start_time: null,
+        end_time: null,
+        room: raw.rooms_raw?.[0] || null
+      });
+      continue;
+    }
+
+    // Split multiple times into separate entries
+    for (let i = 0; i < raw.times_raw.length; i++) {
+      const timeStr = raw.times_raw[i];
+      let start_time = null;
+      let end_time = null;
+
+      const timeRangeMatch = timeStr.match(/(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—\/]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/);
+      if (timeRangeMatch) {
+        start_time = normalizeTime(timeRangeMatch[1]);
+        end_time = normalizeTime(timeRangeMatch[2]);
+      } else {
+        start_time = normalizeTime(timeStr);
+      }
+
+      result.push({
+        ...baseEntry,
+        start_time,
+        end_time,
+        room: raw.rooms_raw?.[i] || raw.rooms_raw?.[0] || null
+      });
+    }
+  }
+
+  return result;
+}
