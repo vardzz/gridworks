@@ -73,8 +73,8 @@ export function Footer() {
              </a>
           </div>
           <div className="flex flex-wrap justify-center md:justify-end items-center gap-6 md:gap-8 text-black/60">
-             <span className="hover:text-black cursor-pointer transition-colors">© {new Date().getFullYear()} Gridworks.</span>
-             <span className="hover:text-black cursor-pointer transition-colors">All rights reserved.</span>
+             <span className="hover:text-black transition-colors">© {new Date().getFullYear()} Gridworks.</span>
+             <span className="hover:text-black transition-colors">All rights reserved.</span>
           </div>
         </div>
 
