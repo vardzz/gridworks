@@ -57,7 +57,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
 
   return (
     <div 
-      className="schedule-canvas flex bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
+      className="schedule-canvas flex min-w-[700px] bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
       style={{ borderColor: "var(--gw-accent, var(--gw-border-color))" }}
     >
       {/* Export Watermark (Tiled Background) */}

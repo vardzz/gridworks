@@ -111,28 +111,28 @@ export default function AppPage() {
     <div className="flex flex-col h-screen bg-white relative overflow-hidden">
       {/* Floating Background Icons */}
       <div className="absolute inset-0 pointer-events-none z-0 opacity-20">
-        <div className="absolute top-[5%] left-[8%] text-prussian-blue-300 animate-drift-1"><Zap size={80} strokeWidth={1} /></div>
-        <div className="absolute top-[35%] right-[6%] text-[#fca311] animate-drift-2"><Settings size={100} strokeWidth={1} /></div>
-        <div className="absolute bottom-[10%] left-[12%] text-alabaster-grey-900 animate-drift-3"><GridIcon size={120} strokeWidth={1} /></div>
-        <div className="absolute bottom-[15%] right-[10%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-2s'}}><FileCheck size={70} strokeWidth={1.5} /></div>
-        <div className="absolute top-[55%] left-[5%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
-        <div className="absolute top-[15%] right-[15%] text-prussian-blue-300 animate-drift-3" style={{animationDelay: '-1s'}}><UploadCloud size={60} strokeWidth={1} /></div>
-        <div className="absolute bottom-[45%] right-[5%] text-[#fca311] animate-drift-1" style={{animationDelay: '-3s'}}><Calendar size={110} strokeWidth={1} /></div>
-        <div className="absolute bottom-[5%] left-[30%] text-prussian-blue-300 animate-drift-2" style={{animationDelay: '-4s'}}><Table size={85} strokeWidth={1.2} /></div>
-        <div className="absolute top-[15%] left-[20%] text-alabaster-grey-900 animate-drift-1" style={{animationDelay: '-6s'}}><Layout size={75} strokeWidth={1} /></div>
-        <div className="absolute bottom-[5%] right-[30%] text-[#fca311] animate-drift-3" style={{animationDelay: '-2.5s'}}><ImageIcon size={65} strokeWidth={1.5} /></div>
-        <div className="absolute top-[5%] right-[35%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-4.5s'}}><Edit3 size={95} strokeWidth={1} /></div>
-        <div className="absolute top-[30%] left-[5%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-1.5s'}}><Monitor size={70} strokeWidth={1.2} /></div>
+        <div className="absolute top-[5%] left-[8%] text-prussian-blue-300 animate-drift-1"><Zap className="size-20 max-sm:size-12" strokeWidth={1} /></div>
+        <div className="absolute top-[35%] right-[6%] text-[#fca311] animate-drift-2"><Settings className="size-[100px] max-sm:size-14" strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] left-[12%] text-alabaster-grey-900 animate-drift-3 max-sm:hidden"><GridIcon size={120} strokeWidth={1} /></div>
+        <div className="absolute bottom-[15%] right-[10%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-2s'}}><FileCheck className="size-[70px] max-sm:size-10" strokeWidth={1.5} /></div>
+        <div className="absolute top-[55%] left-[5%] text-alabaster-grey-900 animate-drift-2 max-sm:hidden" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
+        <div className="absolute top-[15%] right-[15%] text-prussian-blue-300 animate-drift-3" style={{animationDelay: '-1s'}}><UploadCloud className="size-[60px] max-sm:size-8" strokeWidth={1} /></div>
+        <div className="absolute bottom-[45%] right-[5%] text-[#fca311] animate-drift-1 max-sm:hidden" style={{animationDelay: '-3s'}}><Calendar size={110} strokeWidth={1} /></div>
+        <div className="absolute bottom-[5%] left-[30%] text-prussian-blue-300 animate-drift-2 max-sm:hidden" style={{animationDelay: '-4s'}}><Table size={85} strokeWidth={1.2} /></div>
+        <div className="absolute top-[15%] left-[20%] text-alabaster-grey-900 animate-drift-1 max-sm:hidden" style={{animationDelay: '-6s'}}><Layout size={75} strokeWidth={1} /></div>
+        <div className="absolute bottom-[5%] right-[30%] text-[#fca311] animate-drift-3" style={{animationDelay: '-2.5s'}}><ImageIcon className="size-[65px] max-sm:size-10" strokeWidth={1.5} /></div>
+        <div className="absolute top-[5%] right-[35%] text-alabaster-grey-900 animate-drift-2 max-sm:hidden" style={{animationDelay: '-4.5s'}}><Edit3 size={95} strokeWidth={1} /></div>
+        <div className="absolute top-[30%] left-[5%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-1.5s'}}><Monitor className="size-[70px] max-sm:size-10" strokeWidth={1.2} /></div>
       </div>
 
       {/* Persistent banners */}
       {needsMigration && (
-        <div className="relative z-10 px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between text-sm">
+        <div className="relative z-10 px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between text-sm max-sm:flex-col max-sm:gap-2 max-sm:text-xs">
           <span className="text-amber-800">
             Your saved schedule was created with an older version of Gridworks.
             It may display incorrectly.
           </span>
-          <div className="flex gap-3">
+          <div className="flex gap-3 max-sm:w-full max-sm:justify-center">
             <button
               onClick={acceptMigration}
               className="text-amber-700 font-medium hover:underline cursor-pointer"

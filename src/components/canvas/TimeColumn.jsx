@@ -31,7 +31,7 @@ export default function TimeColumn({
   };
 
   return (
-    <div className="relative w-16 shrink-0 border-r border-[var(--gw-border-color)]">
+    <div className="relative w-16 max-sm:w-12 shrink-0 border-r border-[var(--gw-border-color)]">
       {/* Spacer for header row */}
       <div className="h-14 border-b border-[var(--gw-border-color)] transition-colors duration-500" />
 
@@ -42,7 +42,7 @@ export default function TimeColumn({
           return (
             <div
               key={`${hour}-${minute}`}
-              className="absolute right-3 text-[10px] font-bold text-[var(--gw-text-secondary)] tracking-tight leading-none select-none transition-colors duration-500"
+              className="absolute right-3 max-sm:right-1.5 text-[10px] max-sm:text-[8px] font-bold text-[var(--gw-text-secondary)] tracking-tight leading-none select-none transition-colors duration-500"
               style={{ top: `${top}px`, transform: "translateY(-50%)" }}
             >
               {formatTime(hour, minute)}

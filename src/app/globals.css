@@ -311,4 +311,38 @@
   .animate-drift-1 { animation: drift-1 20s ease-in-out infinite; }
   .animate-drift-2 { animation: drift-2 25s ease-in-out infinite; }
   .animate-drift-3 { animation: drift-3 22s ease-in-out infinite; }
+
+  /* ── Mobile Drawer Animations ──────────────────────────── */
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  @keyframes slide-out-right {
+    from { transform: translateX(0); }
+    to   { transform: translateX(100%); }
+  }
+  @keyframes slide-in-bottom {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+
+  .animate-slide-in-right  { animation: slide-in-right 300ms ease-out forwards; }
+  .animate-slide-out-right { animation: slide-out-right 250ms ease-in forwards; }
+  .animate-slide-in-bottom { animation: slide-in-bottom 300ms ease-out forwards; }
+  .animate-fade-in         { animation: fade-in 200ms ease-out forwards; }
+  .animate-fade-out        { animation: fade-out 150ms ease-in forwards; }
+
+  .drawer-backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
