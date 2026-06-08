@@ -34,7 +34,7 @@ export function Footer() {
         {/* Massive Typography */}
         <div className="w-full mb-16 md:mb-24 flex items-center justify-center pointer-events-auto select-none">
           <h1 
-            className="text-[16vw] xl:text-[230px] leading-[0.75] font-bold tracking-tighter text-prussian-blue -ml-[0.05em] flex items-baseline group cursor-default"
+            className="text-[19.5vw] xl:text-[275px] leading-[0.75] font-bold tracking-tighter text-prussian-blue flex items-baseline group cursor-default"
             aria-label="Gridworks"
           >
             <span aria-hidden="true">Gr</span>
@@ -53,11 +53,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Section */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-sm font-semibold text-prussian-blue-600 border-t border-alabaster-grey pt-8">
-          <div className="text-2xl font-bold tracking-tighter text-black w-full md:w-auto text-center md:text-left">
-            Gridworks<span className="text-[#fca311]">.</span>
-          </div>
-          
+        <div className="flex flex-col md:flex-row justify-end items-center gap-8 text-sm font-semibold text-prussian-blue-600 border-t border-alabaster-grey pt-8">
           <div className="flex flex-wrap justify-center md:justify-end items-center gap-6 md:gap-8 text-black/60">
              <span className="hover:text-black cursor-pointer transition-colors">© {new Date().getFullYear()} Gridworks</span>
              <span className="hover:text-black cursor-pointer transition-colors">Handcrafted in browser</span>
