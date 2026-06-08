@@ -5,6 +5,8 @@
  * Dynamically imports pdfjs-dist to avoid DOMMatrix reference during SSR.
  * Maps text items into a 2D structured column array using header X-coordinates.
  *
+ * Handles multi-line column headers (e.g. "Course" on line 1, "Code" on line 2).
+ *
  * @param {File} file — a PDF File object from the drop zone or file picker
  * @returns {Promise<{ headers: string[], rows: Array<Object> }>} — the structured 2D output
  */
@@ -17,9 +19,9 @@ export async function extractTextFromPDF(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
+  // ── Step 1: Collect ALL text items across all pages ──────────────
   let allItems = [];
 
-  // Step 1 — Collect all text items across all pages
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
@@ -28,8 +30,9 @@ export async function extractTextFromPDF(file) {
       allItems.push({
         str: item.str.trim(),
         x: item.transform[4],
-        y: item.transform[5] + ((pdf.numPages - i) * 2000), // Offset by page to prevent Y overlap
-        width: item.width,
+        // Offset Y per page so multi-page docs don't overlap
+        y: item.transform[5] + (pdf.numPages - i) * 10000,
+        width: item.width || 0,
       });
     }
   }
@@ -44,91 +47,155 @@ export async function extractTextFromPDF(file) {
 
   if (allItems.length === 0) return { headers: [], rows: [] };
 
-  // Step 2 — Group items into rows by y-coordinate (4 unit tolerance)
-  allItems.sort((a, b) => b.y - a.y); // Descending Y (top to bottom)
+  // ── Step 2: Group items into rows by y-coordinate ───────────────
+  allItems.sort((a, b) => b.y - a.y); // Descending Y = top of page first
 
-  const rowsByY = [];
-  let currentRow = [allItems[0]];
+  const rowBuckets = [];
+  let bucket = [allItems[0]];
 
   for (let i = 1; i < allItems.length; i++) {
     const item = allItems[i];
-    const meanY = currentRow.reduce((sum, it) => sum + it.y, 0) / currentRow.length;
+    const meanY = bucket.reduce((s, it) => s + it.y, 0) / bucket.length;
     if (Math.abs(item.y - meanY) <= 4) {
-      currentRow.push(item);
+      bucket.push(item);
     } else {
-      rowsByY.push(currentRow);
-      currentRow = [item];
+      rowBuckets.push(bucket);
+      bucket = [item];
     }
   }
-  if (currentRow.length > 0) rowsByY.push(currentRow);
+  if (bucket.length > 0) rowBuckets.push(bucket);
 
-  // Step 3 — Within each row, sort items by x-coordinate ascending (left to right)
-  for (const row of rowsByY) {
+  // ── Step 3: Sort each row left-to-right ─────────────────────────
+  for (const row of rowBuckets) {
     row.sort((a, b) => a.x - b.x);
   }
 
-  // Step 4 — Detect column boundaries from the HEADER ROW
-  let headerRowIdx = 0;
-  for (let i = 0; i < rowsByY.length; i++) {
-    const rowStr = rowsByY[i].map((it) => it.str).join(" ").toLowerCase();
-    if (
-      rowsByY[i].length >= 3 &&
-      (rowStr.includes("course") ||
-        rowStr.includes("code") ||
-        rowStr.includes("subject") ||
-        rowStr.includes("time"))
-    ) {
-      headerRowIdx = i;
-      break;
+  console.log("[pdfExtractor] Total rows found:", rowBuckets.length);
+
+  // ── Step 4: Find HEADER rows (may span 1–2 physical rows) ──────
+  const HEADER_KEYWORDS = [
+    "course", "code", "description", "subject", "title",
+    "lec", "lab", "units", "day", "days", "time",
+    "room", "section", "venue", "schedule",
+  ];
+
+  // Score every row by how many header keywords it contains
+  const rowScores = rowBuckets.map((row) => {
+    const text = row.map((it) => it.str).join(" ").toLowerCase();
+    let score = 0;
+    for (const kw of HEADER_KEYWORDS) {
+      if (text.includes(kw)) score++;
+    }
+    return score;
+  });
+
+  // Find the row with the HIGHEST score
+  let bestIdx = 0;
+  let bestScore = 0;
+  for (let i = 0; i < rowScores.length; i++) {
+    if (rowScores[i] > bestScore) {
+      bestScore = rowScores[i];
+      bestIdx = i;
     }
   }
 
-  const headerItems = rowsByY[headerRowIdx];
-  if (!headerItems || headerItems.length === 0) return { headers: [], rows: [] };
+  if (bestScore === 0) {
+    console.warn("[pdfExtractor] No header row found");
+    return { headers: [], rows: [] };
+  }
 
-  // Merge header items that are part of the same column label (e.g. "Course" and "Code")
-  const mergedHeaders = [];
-  let currentHeader = { ...headerItems[0] };
+  // Check adjacent rows — if they also score > 0, they are part of a multi-line header
+  let headerStart = bestIdx;
+  let headerEnd = bestIdx;
 
-  for (let i = 1; i < headerItems.length; i++) {
-    const item = headerItems[i];
-    const gap = item.x - (currentHeader.x + (currentHeader.width || 0));
-    
-    // If words are very close (less than 8 units), they are part of the same header cell
-    if (gap <= 8) {
-      currentHeader.str += " " + item.str;
-      currentHeader.width = (item.x + (item.width || 0)) - currentHeader.x;
+  if (bestIdx > 0 && rowScores[bestIdx - 1] > 0) {
+    headerStart = bestIdx - 1;
+  }
+  if (bestIdx + 1 < rowBuckets.length && rowScores[bestIdx + 1] > 0) {
+    headerEnd = bestIdx + 1;
+  }
+
+  console.log("[pdfExtractor] Header spans rows", headerStart, "to", headerEnd);
+  for (let i = headerStart; i <= headerEnd; i++) {
+    console.log(`  Row ${i}:`, rowBuckets[i].map((it) => `"${it.str}" @x=${Math.round(it.x)}`).join(", "));
+  }
+
+  // ── Merge all header-row items and group by X proximity ─────────
+  let allHeaderItems = [];
+  for (let i = headerStart; i <= headerEnd; i++) {
+    allHeaderItems = allHeaderItems.concat(rowBuckets[i]);
+  }
+  allHeaderItems.sort((a, b) => a.x - b.x);
+
+  // Group items whose X positions overlap or are very close (< 20 units gap)
+  const xGroups = [];
+  let currentGroup = [allHeaderItems[0]];
+
+  for (let i = 1; i < allHeaderItems.length; i++) {
+    const item = allHeaderItems[i];
+    // Right edge of current group
+    const groupRightEdge = Math.max(
+      ...currentGroup.map((it) => it.x + it.width)
+    );
+    const gap = item.x - groupRightEdge;
+
+    if (gap < 20) {
+      // Same column header (overlapping or close)
+      currentGroup.push(item);
     } else {
-      mergedHeaders.push(currentHeader);
-      currentHeader = { ...item };
+      xGroups.push(currentGroup);
+      currentGroup = [item];
     }
   }
-  mergedHeaders.push(currentHeader);
+  xGroups.push(currentGroup);
 
+  // Within each group, sort top-to-bottom (higher Y = higher on page = first)
+  // then concatenate to form the full column label
+  const mergedHeaders = xGroups.map((group) => {
+    group.sort((a, b) => b.y - a.y); // top first
+    return {
+      label: group.map((it) => it.str).join(" ").trim(),
+      x: Math.min(...group.map((it) => it.x)),
+      width:
+        Math.max(...group.map((it) => it.x + it.width)) -
+        Math.min(...group.map((it) => it.x)),
+    };
+  });
+
+  // Build column boundaries
   const columns = [];
   for (let i = 0; i < mergedHeaders.length; i++) {
-    const item = mergedHeaders[i];
-    const nextItem = mergedHeaders[i + 1];
+    const h = mergedHeaders[i];
+    const nextH = mergedHeaders[i + 1];
     columns.push({
-      label: item.str.trim(),
-      xStart: item.x,
-      xEnd: nextItem ? nextItem.x : Infinity,
+      label: h.label,
+      xStart: h.x,
+      xEnd: nextH ? nextH.x : Infinity,
     });
   }
 
-  // Step 5 — For each data row, assign each text item to a column by its x-coordinate
-  const structuredRows = [];
+  console.log(
+    "[pdfExtractor] Detected columns:",
+    columns.map((c) => `"${c.label}" [${Math.round(c.xStart)}–${c.xEnd === Infinity ? "∞" : Math.round(c.xEnd)}]`).join(" | ")
+  );
 
-  for (let i = headerRowIdx + 1; i < rowsByY.length; i++) {
-    const rowItems = rowsByY[i];
-    const meanY = rowItems.reduce((sum, it) => sum + it.y, 0) / rowItems.length;
+  // ── Step 5: Map every data row into the column grid ─────────────
+  const structuredRows = [];
+  const dataStartIdx = headerEnd + 1;
+
+  for (let i = dataStartIdx; i < rowBuckets.length; i++) {
+    const rowItems = rowBuckets[i];
+    const meanY = rowItems.reduce((s, it) => s + it.y, 0) / rowItems.length;
     const rowObj = { _y: meanY };
-    for (const col of columns) rowObj[col.label] = "";
+
+    for (const col of columns) {
+      rowObj[col.label] = "";
+    }
 
     for (const item of rowItems) {
       let assignedCol = null;
 
-      // Primary check: xStart <= item.x < xEnd
+      // Primary: find column where xStart <= item.x < xEnd
       for (const col of columns) {
         if (item.x >= col.xStart && item.x < col.xEnd) {
           assignedCol = col;
@@ -136,34 +203,49 @@ export async function extractTextFromPDF(file) {
         }
       }
 
-      // Fallback: if item falls outside (e.g. before first column), snap to nearest center
+      // Fallback: snap to nearest column center
       if (!assignedCol) {
-        let minDiff = Infinity;
+        let minDist = Infinity;
         for (const col of columns) {
-          const center = col.xEnd === Infinity ? col.xStart + item.width : (col.xStart + col.xEnd) / 2;
-          const diff = Math.abs(item.x - center);
-          if (diff < minDiff) {
-            minDiff = diff;
+          const center =
+            col.xEnd === Infinity
+              ? col.xStart + 30
+              : (col.xStart + col.xEnd) / 2;
+          const dist = Math.abs(item.x - center);
+          if (dist < minDist) {
+            minDist = dist;
             assignedCol = col;
           }
         }
       }
 
-      // Step 6 - append
-      if (rowObj[assignedCol.label] === "") {
-        rowObj[assignedCol.label] = item.str;
-      } else {
-        rowObj[assignedCol.label] += " " + item.str;
+      if (assignedCol) {
+        if (rowObj[assignedCol.label] === "") {
+          rowObj[assignedCol.label] = item.str;
+        } else {
+          rowObj[assignedCol.label] += " " + item.str;
+        }
       }
     }
 
-    if (Object.values(rowObj).some((val) => val !== "")) {
+    // Only keep rows that have at least one non-empty cell
+    const hasContent = Object.entries(rowObj).some(
+      ([k, v]) => k !== "_y" && v !== ""
+    );
+    if (hasContent) {
       structuredRows.push(rowObj);
     }
   }
 
-  return {
-    headers: columns.map((c) => c.label),
-    rows: structuredRows,
-  };
+  const headers = columns.map((c) => c.label);
+
+  console.log("[pdfExtractor] Final headers:", headers);
+  console.log("[pdfExtractor] Data rows:", structuredRows.length);
+  if (structuredRows.length > 0) {
+    console.log("[pdfExtractor] First data row:", JSON.stringify(structuredRows[0]));
+    console.log("[pdfExtractor] Second data row:", JSON.stringify(structuredRows[1]));
+  }
+
+  // ── Step 6: Return structured object ────────────────────────────
+  return { headers, rows: structuredRows };
 }

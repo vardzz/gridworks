@@ -94,14 +94,21 @@ export async function parseFile(file, options = {}) {
   }
 
   if (!structuredData || !structuredData.rows || structuredData.rows.length === 0) {
+    console.error("[parser] Structured data is empty or missing rows");
     return { entries: [], confidence: 0, error: "extraction_failed" };
   }
+
+  console.log("[parser] Structured data headers:", structuredData.headers);
+  console.log("[parser] Structured data rows:", structuredData.rows.length);
 
   // ── 5. Tokenize ───────────────────────────────────────────────────
   const rawEntries = tokenize(structuredData);
 
   // ── 6. Normalize ──────────────────────────────────────────────────
   const finalEntries = normalizeEntries(rawEntries);
+
+  console.log("[parser] Raw entries:", rawEntries.length);
+  console.log("[parser] Final entries:", finalEntries.length);
 
   // ── 7 & 8. Assign IDs and sanitize ────────────────────────────────
   const sanitizedEntries = finalEntries.map((entry) => {

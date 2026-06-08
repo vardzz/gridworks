@@ -51,6 +51,8 @@ export function tokenize(structuredData) {
     }
   }
 
+  console.log("[tokenizer] Matched headers:", JSON.stringify(matchedHeaders));
+
   // Step 2 — Iterate rows and group into courses/orphans
   const courses = [];
   const orphans = [];
@@ -115,6 +117,11 @@ export function tokenize(structuredData) {
     course.times_raw = course.times_raw.map(t => t.val);
     course.rooms_raw = course.rooms_raw.map(r => r.val);
     delete course._y;
+  }
+
+  console.log("[tokenizer] Courses found:", courses.length);
+  for (const c of courses) {
+    console.log(`  ${c.course_code}: title=${c.course_title}, days=${c.days_raw}, times=[${c.times_raw.join("; ")}], rooms=[${c.rooms_raw.join("; ")}]`);
   }
 
   return courses;
