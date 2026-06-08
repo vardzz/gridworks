@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { UploadCloud, FileText } from "lucide-react";
 
 /**
  * File Intake Screen (PRD §8, Screen 1).
@@ -151,49 +152,60 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
       )}
 
       {/* Drop Zone */}
-      <div
+      <div className="w-full max-w-2xl flex flex-col relative group cursor-pointer"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => fileInputRef.current?.click()}
-        className={`w-full max-w-xl aspect-[4/3] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
-          isDragging
-            ? "border-[var(--gw-accent)] bg-blue-50/50 scale-[1.02]"
-            : "border-alabaster-grey-400 hover:border-neutral-400 hover:bg-alabaster-grey-900/50"
-        } ${isLoading ? "pointer-events-none opacity-70" : ""}`}
       >
-        {isLoading ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin w-8 h-8 border-3 border-alabaster-grey-400 border-t-prussian-blue-700 rounded-full" />
-            <p className="text-sm text-prussian-blue-700 font-medium">
-              {progress > 0
-                ? `Reading your file… ${progress}%`
-                : "Reading your file…"}
-            </p>
-            {/* OCR Progress bar */}
-            {progress > 0 && (
-              <div className="w-48 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[var(--gw-accent)] transition-all duration-300 rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
+        <div className={`w-full bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden transition-all duration-300 ${isDragging ? "scale-[1.02] shadow-2xl" : ""} ${isLoading ? "pointer-events-none opacity-70" : ""}`}>
+          <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#fca311] to-prussian-blue-300 transition-opacity duration-700 ${isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
+          
+          <div className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-16 md:p-24 relative overflow-hidden transition-colors duration-500 ${isDragging ? "border-prussian-blue-300 bg-prussian-blue/5" : "border-alabaster-grey-900 bg-alabaster-grey/20 group-hover:border-prussian-blue-300"}`}>
+            
+            {isLoading ? (
+              <div className="flex flex-col items-center gap-4 z-10">
+                <div className="animate-spin w-8 h-8 border-3 border-alabaster-grey-400 border-t-prussian-blue-700 rounded-full" />
+                <p className="text-sm text-prussian-blue-700 font-medium">
+                  {progress > 0
+                    ? `Reading your file… ${progress}%`
+                    : "Reading your file…"}
+                </p>
+                {/* OCR Progress bar */}
+                {progress > 0 && (
+                  <div className="w-48 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#fca311] transition-all duration-300 rounded-full"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                )}
               </div>
+            ) : (
+              <>
+                <div className={`w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 transition-all duration-500 relative z-10 ${isDragging ? "-translate-y-2 shadow-xl" : "group-hover:-translate-y-2 group-hover:shadow-xl"}`}>
+                  <UploadCloud className={`transition-colors ${isDragging ? "text-[#fca311]" : "text-prussian-blue-600 group-hover:text-[#fca311]"}`} size={32} />
+                </div>
+                <h4 className="text-2xl font-bold text-black mb-2 text-center">Upload Schedule PDF</h4>
+                <p className="text-base text-prussian-blue-600 font-medium text-center max-w-[280px]">
+                  {isDragging ? "Drop your schedule here" : "Drag and drop your university schedule here"}
+                </p>
+                <p className="text-xs text-prussian-blue-400 mt-6 z-10 text-center">
+                  Supports PDF, PNG, JPEG • Max 10 MB
+                </p>
+                
+                {/* Floating Document Mock 1 */}
+                <div className={`absolute top-8 left-8 md:top-12 md:left-12 w-12 h-16 bg-white shadow-lg rounded border border-alabaster-grey flex flex-col items-center justify-center -rotate-12 transition-all duration-700 delay-100 z-0 ${isDragging ? "opacity-100 translate-y-2" : "opacity-0 group-hover:opacity-100 group-hover:translate-y-2"}`}>
+                  <FileText className="text-[#fca311]" size={20} />
+                </div>
+                {/* Floating Document Mock 2 */}
+                <div className={`absolute bottom-8 right-8 md:bottom-12 md:right-12 w-10 h-14 bg-white shadow-lg rounded border border-alabaster-grey flex flex-col items-center justify-center rotate-12 transition-all duration-700 delay-200 z-0 ${isDragging ? "opacity-100 -translate-y-2" : "opacity-0 group-hover:opacity-100 group-hover:-translate-y-2"}`}>
+                  <FileText className="text-prussian-blue-300" size={16} />
+                </div>
+              </>
             )}
           </div>
-        ) : (
-          <div className="flex flex-col items-center gap-3 text-center px-8">
-            <div className="text-4xl text-alabaster-grey-400">📄</div>
-            <p className="text-lg font-medium text-prussian-blue-700">
-              Drop your schedule here
-            </p>
-            <p className="text-sm text-alabaster-grey-300">
-              or click to browse your files
-            </p>
-            <p className="text-xs text-alabaster-grey-400 mt-2">
-              Supports PDF, PNG, JPEG • Max 10 MB
-            </p>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Hidden file input */}
