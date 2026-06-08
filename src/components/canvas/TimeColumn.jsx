@@ -14,6 +14,7 @@ export default function TimeColumn({
   startHour = 7,
   endHour = 21,
   slotHeight = 48,
+  paddingTop = 0,
 }) {
   const slots = [];
   for (let h = startHour; h < endHour; h++) {
@@ -37,7 +38,7 @@ export default function TimeColumn({
       {/* Time labels */}
       <div className="relative">
         {slots.map(({ hour, minute }) => {
-          const top = (hour - startHour) * 2 * slotHeight + (minute === 30 ? slotHeight : 0);
+          const top = (hour - startHour) * 2 * slotHeight + (minute === 30 ? slotHeight : 0) + paddingTop;
           return (
             <div
               key={`${hour}-${minute}`}

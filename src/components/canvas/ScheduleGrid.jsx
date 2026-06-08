@@ -10,6 +10,8 @@ const START_HOUR = 7;
 const END_HOUR = 21;
 const TOTAL_HOURS = END_HOUR - START_HOUR; // 14 hours
 const GRID_HEIGHT = TOTAL_HOURS * 2 * SLOT_HEIGHT; // 1344px
+const GRID_PT = 24; // Padding Top
+const GRID_PB = 24; // Padding Bottom
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -35,7 +37,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
       <div
         key={`line-${h}`}
         className="absolute left-0 right-0 border-t border-[var(--gw-border-color)]"
-        style={{ top: `${h * 2 * SLOT_HEIGHT}px`, opacity: 0.4 }}
+        style={{ top: `${h * 2 * SLOT_HEIGHT + GRID_PT}px`, opacity: 0.4 }}
       />
     );
     // Half-hour line (dashed)
@@ -45,7 +47,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
           key={`half-${h}`}
           className="absolute left-0 right-0 border-t border-dashed border-[var(--gw-border-color)]"
           style={{
-            top: `${h * 2 * SLOT_HEIGHT + SLOT_HEIGHT}px`,
+            top: `${h * 2 * SLOT_HEIGHT + SLOT_HEIGHT + GRID_PT}px`,
             opacity: 0.2,
           }}
         />
@@ -59,6 +61,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
         startHour={START_HOUR}
         endHour={END_HOUR}
         slotHeight={SLOT_HEIGHT}
+        paddingTop={GRID_PT}
       />
 
       {/* Day columns */}
@@ -79,7 +82,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
             </div>
 
             {/* Grid area */}
-            <div className="relative" style={{ height: `${GRID_HEIGHT}px` }}>
+            <div className="relative" style={{ height: `${GRID_HEIGHT + GRID_PT + GRID_PB}px` }}>
               {gridLines}
 
               {layoutEntries.map((entry, idx) => {
@@ -100,7 +103,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
                     key={`${entry.id}-${day}`}
                     entry={entry}
                     style={{
-                      top: `${Math.max(0, top)}px`,
+                      top: `${Math.max(0, top) + GRID_PT}px`,
                       height: `${Math.max(SLOT_HEIGHT, height)}px`,
                       width: entry._layoutWidth || "calc(100% - 4px)",
                       left: entry._layoutLeft || "2px",
