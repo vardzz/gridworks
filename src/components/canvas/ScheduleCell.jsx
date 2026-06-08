@@ -58,7 +58,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("subject_code", 12)}
-          className="font-bold text-sm text-black outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-tight truncate transition-colors"
+          className="font-bold text-sm text-black outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm leading-tight truncate transition-colors"
         >
           {entry.subject_code || ""}
         </div>
@@ -78,7 +78,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
         contentEditable
         suppressContentEditableWarning
         onBlur={handleBlur("subject_title", 80)}
-        className="text-[11px] font-medium text-black/80 outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-snug line-clamp-3 break-words transition-colors"
+        className="text-[11px] font-medium text-black/80 outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm leading-snug line-clamp-3 break-words transition-colors"
       >
         {entry.subject_title || ""}
       </div>
@@ -89,7 +89,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("room", 20)}
-          className="outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm transition-colors"
+          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm transition-colors"
         >
           {entry.room || ""}
         </span>
@@ -98,7 +98,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("professor", 60)}
-          className="outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm truncate transition-colors"
+          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm truncate transition-colors"
         >
           {entry.professor || ""}
         </span>
