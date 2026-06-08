@@ -1,133 +1,129 @@
 // src/lib/parser/normalizer.js — Normalizes raw structured entries into schema objects
 
-const DAY_MAP_2 = { th: "Thursday", su: "Sunday" };
-const DAY_MAP_1 = {
-  m: "Monday", t: "Tuesday", w: "Wednesday",
-  f: "Friday", s: "Saturday"
+const COMPOUND_MAP = {
+  "mth":  ["Monday", "Thursday"],
+  "mwf":  ["Monday", "Wednesday", "Friday"],
+  "tf":   ["Tuesday", "Friday"],
+  "tth":  ["Tuesday", "Thursday"],
+  "t/th": ["Tuesday", "Thursday"],
+  "mw":   ["Monday", "Wednesday"],
+  "wf":   ["Wednesday", "Friday"]
 };
 
-const COMPOUND_MAP = {
-  mth: ["Monday", "Thursday"],
-  mwf: ["Monday", "Wednesday", "Friday"],
-  tf:  ["Tuesday", "Friday"],
-  tth: ["Tuesday", "Thursday"],
-  wf:  ["Wednesday", "Friday"],
-  mw:  ["Monday", "Wednesday"]
+const SINGLE_MAP = {
+  "m":  "Monday",
+  "t":  "Tuesday",
+  "w":  "Wednesday",
+  "th": "Thursday",
+  "f":  "Friday",
+  "s":  "Saturday",
+  "su": "Sunday"
 };
 
 const WORD_MAP = {
-  monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
-  thursday: "Thursday", friday: "Friday", saturday: "Saturday",
-  sunday: "Sunday",
-  mon: "Monday", tue: "Tuesday", wed: "Wednesday",
-  thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday"
+  "mon": "Monday",  "monday":    "Monday",
+  "tue": "Tuesday", "tuesday":   "Tuesday",
+  "wed": "Wednesday","wednesday": "Wednesday",
+  "thu": "Thursday","thursday":  "Thursday",
+  "fri": "Friday",  "friday":    "Friday",
+  "sat": "Saturday","saturday":  "Saturday",
+  "sun": "Sunday",  "sunday":    "Sunday"
 };
 
-function tokenizeDays(daysRaw) {
-  const s = daysRaw.replace(/\//g, " ").replace(/,/g, " ").replace(/-/g, " ");
-  return s.split(/\s+/).filter(Boolean);
-}
-
-function mapToken(token) {
-  const lower = token.toLowerCase();
-
-  if (WORD_MAP[lower]) return [WORD_MAP[lower]];
-  
-  for (const [key, val] of Object.entries(COMPOUND_MAP)) {
-    if (lower === key) return val;
-  }
-
-  // Character-by-character greedy match
-  const result = [];
-  let i = 0;
-  while (i < token.length) {
-    const two = token.substring(i, i + 2).toLowerCase();
-    const one = token.substring(i, i + 1).toLowerCase();
-    
-    if (DAY_MAP_2[two]) {
-      result.push(DAY_MAP_2[two]);
-      i += 2;
-    } else if (DAY_MAP_1[one]) {
-      result.push(DAY_MAP_1[one]);
-      i += 1;
-    } else {
-      i += 1; // unrecognized character, skip
-    }
-  }
-  return result;
-}
-
-// Step 7 — Day Normalization
 export function normalizeDays(daysRaw) {
   if (!daysRaw) return [];
-  const tokens = tokenizeDays(daysRaw);
-  const days = [];
-  for (const token of tokens) {
-    days.push(...mapToken(token));
+
+  const lower = daysRaw.toLowerCase().trim();
+
+  // Check compound map first (e.g. "mth", "mwf")
+  const noSlashSpace = lower.replace(/\//g,"").replace(/\s/g,"");
+  if (COMPOUND_MAP[noSlashSpace]) {
+    return COMPOUND_MAP[noSlashSpace];
   }
-  return [...new Set(days)];
+
+  // Split by "/" or "," or whitespace into tokens
+  const tokens = lower.split(/[\/,\s]+/).filter(Boolean);
+
+  const result = [];
+  for (const token of tokens) {
+    if (WORD_MAP[token]) { result.push(WORD_MAP[token]); continue; }
+    if (SINGLE_MAP[token]) { result.push(SINGLE_MAP[token]); continue; }
+
+    // Greedy character walk for fused codes like "mth" not in compound map
+    let i = 0;
+    while (i < token.length) {
+      const two = token.substring(i, i+2);
+      const one = token.substring(i, i+1);
+      if (SINGLE_MAP[two]) { result.push(SINGLE_MAP[two]); i += 2; }
+      else if (SINGLE_MAP[one]) { result.push(SINGLE_MAP[one]); i += 1; }
+      else { i += 1; }
+    }
+  }
+
+  return [...new Set(result)];
 }
 
-// Step 6 — Time Parsing
 function parseTo24h(token) {
   if (!token) return null;
-  // Robust regex to extract hours, minutes, and optional am/pm
-  const match = token.match(/(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?/i);
-  if (!match) return null;
+  token = token.trim().toLowerCase();
+  let meridiem = null;
+  if (token.endsWith("pm")) { meridiem = "pm"; token = token.slice(0,-2).trim(); }
+  if (token.endsWith("am")) { meridiem = "am"; token = token.slice(0,-2).trim(); }
+
+  const parts = token.split(":");
+  let h = parseInt(parts[0], 10);
+  let m = parts.length > 1 ? parseInt(parts[1], 10) : 0;
   
-  let h = parseInt(match[1], 10);
-  const m = parseInt(match[2], 10);
-  const meridiem = match[3] ? match[3].toLowerCase() : null;
-  
-  if (isNaN(h) || isNaN(m)) return null;
+  if (isNaN(h)) return null;
+  if (isNaN(m)) m = 0;
 
   if (meridiem === "pm" && h !== 12) h += 12;
   if (meridiem === "am" && h === 12) h = 0;
-  
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+
+  return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
 }
 
-// Step 8 — Multi-Slot Split
+function parseTimeRange(timeStr) {
+  const parts = timeStr.split(/\s*[-–]\s*/);
+  if (parts.length < 2) return { start_time: null, end_time: null };
+  return {
+    start_time: parseTo24h(parts[0]),
+    end_time:   parseTo24h(parts[1])
+  };
+}
+
 export function normalizeEntries(rawEntries) {
   const output = [];
 
   for (const entry of rawEntries) {
+    const days = normalizeDays(entry.days_raw);
     const N = entry.times_raw.length;
     
     if (N === 0) {
       output.push({
         subject_code: entry.subject_code,
         subject_title: entry.subject_title,
-        days: normalizeDays(entry.days_raw),
+        days: days,
         start_time: null,
         end_time: null,
-        room: entry.rooms_raw.length > 0 ? entry.rooms_raw[0] : null
+        room: entry.rooms_raw && entry.rooms_raw.length > 0 ? entry.rooms_raw[0] : null
       });
       continue;
     }
 
     for (let i = 0; i < N; i++) {
-      let timeStr = entry.times_raw[i] || "";
-      // Strip trailing slashes, commas, or extra whitespace that would break 'pm' detection
-      timeStr = timeStr.replace(/[\/,]/g, '').trim();
-      
-      const roomStr = (i < entry.rooms_raw.length) ? entry.rooms_raw[i] : (entry.rooms_raw[0] || null);
-      
-      const parts = timeStr.split(/\s*[-–—]\s*|\s+to\s+/i);
-      let start = null;
-      let end = null;
-      if (parts.length === 2) {
-        start = parseTo24h(parts[0]);
-        end = parseTo24h(parts[1]);
-      }
-      
+      const { start_time, end_time } = parseTimeRange(entry.times_raw[i] || "");
+      const room = entry.rooms_raw[i] !== undefined && entry.rooms_raw[i] !== "" 
+                   ? entry.rooms_raw[i] 
+                   : (entry.rooms_raw[0] !== undefined && entry.rooms_raw[0] !== "" ? entry.rooms_raw[0] : null);
+
       output.push({
-        subject_code: entry.subject_code,
+        subject_code:  entry.subject_code,
         subject_title: entry.subject_title,
-        days: normalizeDays(entry.days_raw),
-        start_time: start,
-        end_time: end,
-        room: roomStr
+        days:         days,
+        start_time:   start_time,
+        end_time:     end_time,
+        room:         room
       });
     }
   }

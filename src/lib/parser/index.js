@@ -9,34 +9,6 @@ import { preCheckIsRegistrationForm } from "./llmFallback";
 import { sanitizeEntry } from "@/lib/sanitize";
 
 /**
- * Converts raw plaintext from OCR into a pseudo-2D structured object.
- * Treats each line as a row, splitting by tabs or 2+ spaces.
- * 
- * @param {string} rawText 
- * @returns {Object} { headers: string[], rows: Object[] }
- */
-function convertOCRToStructuredData(rawText) {
-  if (!rawText) return { headers: [], rows: [] };
-  
-  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
-  if (lines.length === 0) return { headers: [], rows: [] };
-
-  const headers = lines[0].split(/\t|\s{2,}/).map(h => h.trim());
-  const rows = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const cells = lines[i].split(/\t|\s{2,}/).map(c => c.trim());
-    const rowObj = {};
-    for (let j = 0; j < headers.length; j++) {
-      rowObj[headers[j]] = cells[j] || "";
-    }
-    rows.push(rowObj);
-  }
-
-  return { headers, rows };
-}
-
-/**
  * Full parsing pipeline orchestrator.
  *
  * @param {File} file
@@ -59,7 +31,7 @@ export async function parseFile(file, options = {}) {
   }
 
   const isImage = file.type.startsWith("image/");
-  let structuredData = null;
+  let rawLines = [];
 
   // ── 2. Image pre-check ────────────────────────────────────────────
   if (isImage && !skipPreCheck) {
@@ -72,16 +44,20 @@ export async function parseFile(file, options = {}) {
   // ── 3 & 4. Extraction ─────────────────────────────────────────────
   if (isImage) {
     const rawText = await extractTextFromImage(file, onProgress);
-    structuredData = convertOCRToStructuredData(rawText);
+    if (rawText) {
+      rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+    }
   } else {
     try {
-      structuredData = await extractTextFromPDF(file);
+      rawLines = await extractTextFromPDF(file);
     } catch (error) {
       if (error.code === "IMAGE_BASED_PDF") {
         console.warn("Pre-flight failed: Image-based PDF detected. Routing to OCR.");
         try {
           const rawText = await extractTextFromImage(file, onProgress);
-          structuredData = convertOCRToStructuredData(rawText);
+          if (rawText) {
+            rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+          }
         } catch (err) {
           console.error("OCR failed on PDF:", err);
           return { entries: [], confidence: 0, error: "extraction_failed" };
@@ -93,16 +69,15 @@ export async function parseFile(file, options = {}) {
     }
   }
 
-  if (!structuredData || !structuredData.rows || structuredData.rows.length === 0) {
-    console.error("[parser] Structured data is empty or missing rows");
+  if (!rawLines || rawLines.length === 0) {
+    console.error("[parser] Extracted raw lines are empty");
     return { entries: [], confidence: 0, error: "extraction_failed" };
   }
 
-  console.log("[parser] Structured data headers:", structuredData.headers);
-  console.log("[parser] Structured data rows:", structuredData.rows.length);
+  console.log(`[parser] Extracted ${rawLines.length} lines`);
 
   // ── 5. Tokenize ───────────────────────────────────────────────────
-  const rawEntries = tokenize(structuredData);
+  const rawEntries = tokenize(rawLines);
 
   // ── 6. Normalize ──────────────────────────────────────────────────
   const finalEntries = normalizeEntries(rawEntries);
@@ -130,3 +105,4 @@ export async function parseFile(file, options = {}) {
     error: null,
   };
 }
+

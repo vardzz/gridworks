@@ -1,78 +1,122 @@
 // src/lib/parser/regexTokenizer.js — Structured Data Tokenizer
 
-const TARGET_FIELDS = {
+const TRIGGER_WORDS = [
+  "course code", "course description", "subject code",
+  "day", "time", "room"
+];
+
+const TARGET_MATCH = {
   course_code:   ["course code", "code", "subject code", "subj code", "subj. code"],
   course_title:  ["course description", "description", "subject", "title", "course title"],
-  room:          ["room", "room no", "room no.", "venue", "location"],
   day:           ["day", "days", "day/s"],
-  time:          ["time", "time slot", "schedule", "class hours"]
+  time:          ["time", "time slot", "schedule", "class hours"],
+  room:          ["room", "room no", "room no.", "venue", "location"]
 };
 
-function matchHeader(headerLabel, targetField) {
-  const lower = headerLabel.toLowerCase().trim();
-  // Substring matching handles split-merged columns (e.g., matching "Code" to "course code")
-  return TARGET_FIELDS[targetField].some(m => lower === m || lower.includes(m) || m.includes(lower));
+const END_MARKERS = [
+  "prepared by", "noted by", "approved", "checked by",
+  "registrar", "dean", "total", "signature", "assessment of fees", "registered"
+];
+
+function isHeaderLine(line) {
+  const lower = line.toLowerCase();
+  const matches = TRIGGER_WORDS.filter(word => lower.includes(word));
+  return matches.length >= 2;
 }
 
-function buildFieldMap(columns) {
-  const fieldMap = {};
-  for (const targetField of Object.keys(TARGET_FIELDS)) {
-    for (const label of columns) {
-      if (matchHeader(label, targetField)) {
-        fieldMap[targetField] = label;
-        break;
-      }
-    }
-    if (!fieldMap[targetField]) {
-      fieldMap[targetField] = null;
-    }
-  }
-  return fieldMap;
+function isFooterLine(line) {
+  const lower = line.toLowerCase().trim();
+  return END_MARKERS.some(marker => lower.startsWith(marker) || lower.includes(marker));
 }
 
-function readField(row, fieldMap, targetField) {
-  const headerLabel = fieldMap[targetField];
-  if (!headerLabel) return "";
-  return row[headerLabel] ?? "";
+function splitIntoCells(line) {
+  // Use regex split by 2 or more spaces or a tab
+  return line.split(/\t|\s{2,}/);
 }
 
-function isContinuationRow(row, fieldMap) {
-  const courseCodeValue = readField(row, fieldMap, "course_code");
-  // Simple check + validation against a completely extraneous row
-  const isLikelyCourse = /\b[A-Z]{2,5}\s?-?\d{1,4}[A-Z]?\b/i.test(courseCodeValue);
-  return courseCodeValue === "" || (!isLikelyCourse && courseCodeValue.length < 4);
+function isContinuationLine(cells) {
+  return cells[0].trim() === "";
 }
 
 /**
- * Tokenizes a structured 2D matrix into raw entry objects.
+ * Tokenizes raw text lines into raw entry objects.
  *
- * @param {Object} structuredData
+ * @param {Array<string>} rawLines
  * @returns {Array<Object>} — array of raw entry objects
  */
-export function tokenize(structuredData) {
-  if (!structuredData || !structuredData.headers || !structuredData.rows) {
+export function tokenize(rawLines) {
+  if (!rawLines || rawLines.length === 0) {
     return [];
   }
 
-  // Step 4 — Column Isolation
-  const fieldMap = buildFieldMap(structuredData.headers);
-  console.log("[tokenizer] Field Map:", JSON.stringify(fieldMap));
+  // Step 2 — Find the Header Line
+  let headerIndex = -1;
+  for (let i = 0; i < rawLines.length; i++) {
+    if (isHeaderLine(rawLines[i])) {
+      headerIndex = i;
+      break;
+    }
+  }
 
-  // Step 5 — Continuation Row Detection
+  if (headerIndex === -1) {
+    console.warn("[tokenizer] No target table header found");
+    return [];
+  }
+
+  const headerLine = rawLines[headerIndex];
+  const headerCells = splitIntoCells(headerLine);
+
+  // Step 3 — Build the Column Index Map
+  const fieldIndexMap = {};
+  for (const targetField of Object.keys(TARGET_MATCH)) {
+    for (let i = 0; i < headerCells.length; i++) {
+      const cellLower = headerCells[i].toLowerCase().trim();
+      if (TARGET_MATCH[targetField].some(synonym => cellLower === synonym || cellLower.includes(synonym) || synonym.includes(cellLower))) {
+        fieldIndexMap[targetField] = i;
+        break;
+      }
+    }
+  }
+
+  console.log("[tokenizer] Field Index Map:", JSON.stringify(fieldIndexMap));
+
+  // Step 4 — Read Data Lines
+  const dataLines = rawLines.slice(headerIndex + 1);
+  const tableLines = [];
+  for (const line of dataLines) {
+    if (isFooterLine(line)) break;
+    if (line.trim() !== "") {
+      tableLines.push(line);
+    }
+  }
+
+  // Steps 5-7 — Split + Detect + Accumulate
   const entries = [];
+  
+  for (const line of tableLines) {
+    // If the line has leading spaces, the first cell will be empty or a space
+    // Let's preserve leading spaces when splitting, or manually check
+    const startsWithDoubleSpace = line.startsWith("  ") || line.startsWith("\t");
+    const cells = splitIntoCells(line.trimStart());
+    
+    // If the line started with a double space, the first column is effectively empty
+    if (startsWithDoubleSpace) {
+      cells.unshift("");
+    }
 
-  for (const row of structuredData.rows) {
-    if (!isContinuationRow(row, fieldMap)) {
+    const isContinuation = isContinuationLine(cells);
+
+    if (!isContinuation) {
       const entry = {
-        subject_code: readField(row, fieldMap, "course_code"),
-        subject_title: readField(row, fieldMap, "course_title"),
-        days_raw: readField(row, fieldMap, "day"),
-        times_raw: [],
-        rooms_raw: []
+        subject_code:  (fieldIndexMap.course_code !== undefined && cells[fieldIndexMap.course_code]) ? cells[fieldIndexMap.course_code].trim() : "",
+        subject_title: (fieldIndexMap.course_title !== undefined && cells[fieldIndexMap.course_title]) ? cells[fieldIndexMap.course_title].trim() : "",
+        days_raw:      (fieldIndexMap.day !== undefined && cells[fieldIndexMap.day]) ? cells[fieldIndexMap.day].trim() : "",
+        times_raw:     [],
+        rooms_raw:     []
       };
       
-      const t = readField(row, fieldMap, "time");
-      const r = readField(row, fieldMap, "room");
+      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
+      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
       if (t) entry.times_raw.push(t);
       if (r) entry.rooms_raw.push(r);
       
@@ -81,8 +125,9 @@ export function tokenize(structuredData) {
       if (entries.length === 0) continue;
       
       const lastEntry = entries[entries.length - 1];
-      const t = readField(row, fieldMap, "time");
-      const r = readField(row, fieldMap, "room");
+      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
+      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
+      
       if (t) lastEntry.times_raw.push(t);
       if (r) lastEntry.rooms_raw.push(r);
     }
