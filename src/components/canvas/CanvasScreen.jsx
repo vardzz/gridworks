@@ -71,6 +71,7 @@ export default function CanvasScreen({
           <ScheduleGrid
             schedule={state.schedule}
             onUpdateEntry={updateEntry}
+            isExporting={isExporting}
           />
         </div>
       </div>

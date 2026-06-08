@@ -23,7 +23,7 @@ const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
  * @param {Array} props.schedule — array of schedule entries from state
  * @param {function} props.onUpdateEntry — (id, patch) => void
  */
-export default function ScheduleGrid({ schedule, onUpdateEntry }) {
+export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
   // Determine which days to show based on entries
   const hasWeekend = schedule.some(
     (e) => e.days?.includes("Saturday") || e.days?.includes("Sunday")
@@ -60,6 +60,17 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
       className="schedule-canvas flex bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
       style={{ borderColor: "var(--gw-accent, var(--gw-border-color))" }}
     >
+      {/* Export Watermark (Tiled Background) */}
+      <div 
+        className={`absolute inset-0 z-0 pointer-events-none ${isExporting ? 'opacity-[0.03]' : 'opacity-0'}`}
+        style={{ 
+          backgroundImage: "url('/gridworks-logo.png')", 
+          backgroundRepeat: "repeat", 
+          backgroundSize: "100px 100px",
+          backgroundPosition: "center"
+        }}
+      />
+
       <TimeColumn
         startHour={START_HOUR}
         endHour={END_HOUR}
