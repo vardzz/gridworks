@@ -61,17 +61,23 @@ export async function extractTextFromPDF(file) {
       let lineText = "";
       if (row.items.length > 0) {
         let currentItem = row.items[0];
+        
+        // Add leading padding so the first item aligns correctly globally
+        let leadingSpaces = Math.round(currentItem.x / 4.5);
+        if (leadingSpaces > 0) lineText += " ".repeat(leadingSpaces);
+        
         lineText += currentItem.str;
         
         for (let j = 1; j < row.items.length; j++) {
           const item = row.items[j];
           const gap = item.x - (currentItem.x + currentItem.width);
           
+          let spaces = 1;
           if (gap > 12) {
-            lineText += "  "; // 2 spaces to separate columns
-          } else {
-            lineText += " ";  // 1 space to separate words
+            spaces = Math.max(2, Math.round(gap / 4.5));
           }
+          
+          lineText += " ".repeat(spaces);
           lineText += item.str;
           currentItem = item;
         }
