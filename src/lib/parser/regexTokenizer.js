@@ -2,10 +2,10 @@
 import { normalizeDays, normalizeTime } from "./normalizer";
 
 // ── Regex patterns from PRD §9.1 ──────────────────────────────────────
-const SUBJECT_CODE_RE = /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/g;
-const TIME_RANGE_RE = /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/gi;
-const DAYS_RE = /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
-const ROOM_RE = /\b(?:COMLAB\s*\d|FIELD\d+|VRCCE-\d+|[A-Z]+-?\d{1,4}[A-Z]?)\b/gi;
+const SUBJECT_CODE_RE = /\b([A-Z]{2,5}\s?\d{1,4}[A-Z]?)\b/g;
+const TIME_RANGE_RE = /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—\/]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/gi;
+const DAYS_RE = /\b(MWF|TTh|T\/Th|M\/Th|T\/F|MW|MTh|WTh|TR|TF|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
+const ROOM_RE = /\b(?:COMLAB\s*\d+|FIELD\s*\d+|VRCCE-?\d+|GK-?\d+|[A-Z]{2,5}\s?-?\d{1,4}[A-Z]?|\d{3,4})\b/gi;
 
 /**
  * Parses raw text into schedule entries using Token Clustering Maps 
@@ -21,8 +21,25 @@ export function tokenize(rawText) {
   const subjects = [];
   let match;
   SUBJECT_CODE_RE.lastIndex = 0;
+  
+  // Known room prefixes to filter out false-positive subject codes
+  const roomPrefixes = ["BCH", "COMLAB", "FIELD", "VRCCE", "GK", "ROOM", "LAB"];
+
   while ((match = SUBJECT_CODE_RE.exec(rawText)) !== null) {
-    subjects.push({ code: match[0], index: match.index });
+    const code = match[1];
+    
+    // Reject if it is a time (e.g. TF 10:00am)
+    const after = rawText.substring(match.index + code.length, match.index + code.length + 10);
+    if (/^\s*:\s*\d{2}/.test(after)) continue;
+
+    // Reject if the code is actually a known room
+    const isRoom = roomPrefixes.some(prefix => code.toUpperCase().startsWith(prefix));
+    if (isRoom) continue;
+
+    // Reject if it starts with a number (e.g. Section like 3CS-A)
+    if (/^\d/.test(code)) continue;
+
+    subjects.push({ code, index: match.index });
   }
 
   if (subjects.length === 0) return [];
@@ -110,7 +127,8 @@ function extractTitle(block, subject_code) {
   }
 
   if (subject_title) {
-    subject_title = subject_title.replace(/\s+\d\s+\d$/, "").trim();
+    // Strip Lecture and Lab units at the end of the title string (e.g. " 3 0" or " 2.0 1.0")
+    subject_title = subject_title.replace(/\s+\d+(?:\.\d+)?\s+\d+(?:\.\d+)?\s*$/, "").trim();
   }
 
   return subject_title ? subject_title.replace(/[-–—,;]+$/, "").trim() : null;
