@@ -18,6 +18,7 @@ export async function extractTextFromPDF(file) {
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
   let fullText = "";
+  let globalHeaders = null;
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
@@ -55,14 +56,58 @@ export async function extractTextFromPDF(file) {
     }
     if (currentRow.length > 0) rows.push(currentRow);
 
-    // Reconstruct page text from rows
+    // Find headers to establish column X boundaries (only need to do this once)
+    if (!globalHeaders) {
+      for (const row of rows) {
+        row.sort((a, b) => a.x - b.x);
+        const validItems = row.filter(i => i.str !== "");
+        const rowStr = validItems.map(i => i.str).join(" ").toLowerCase();
+        
+        if (validItems.length >= 3 && (rowStr.includes("course") || rowStr.includes("code") || rowStr.includes("subject") || rowStr.includes("time") || rowStr.includes("room"))) {
+          globalHeaders = validItems;
+          break;
+        }
+      }
+    }
+
+    // Reconstruct page text from rows, using header boundaries to prevent column shifting
     let pageText = "";
-    for (const row of rows) {
-      // Ensure strictly sorted by X within the tolerant Y bucket
-      row.sort((a, b) => a.x - b.x);
-      const validItems = row.filter((i) => i.str !== "");
-      if (validItems.length > 0) {
-        pageText += validItems.map((i) => i.str).join("\t") + "\n";
+    if (globalHeaders) {
+      for (const row of rows) {
+        const validItems = row.filter((i) => i.str !== "");
+        if (validItems.length === 0) continue;
+
+        const columns = new Array(globalHeaders.length).fill("");
+
+        for (const item of validItems) {
+          // Snap item to the nearest column header using midpoint boundaries
+          let closestIdx = 0;
+          for (let j = 0; j < globalHeaders.length; j++) {
+            const leftBound = j === 0 ? -Infinity : (globalHeaders[j-1].x + globalHeaders[j].x) / 2;
+            const rightBound = j === globalHeaders.length - 1 ? Infinity : (globalHeaders[j].x + globalHeaders[j+1].x) / 2;
+            
+            if (item.x >= leftBound && item.x < rightBound) {
+              closestIdx = j;
+              break;
+            }
+          }
+          
+          if (columns[closestIdx] === "") {
+            columns[closestIdx] = item.str;
+          } else {
+            columns[closestIdx] += " " + item.str;
+          }
+        }
+        pageText += columns.join("\t") + "\n";
+      }
+    } else {
+      // Fallback if no headers found on the entire document
+      for (const row of rows) {
+        row.sort((a, b) => a.x - b.x);
+        const validItems = row.filter((i) => i.str !== "");
+        if (validItems.length > 0) {
+          pageText += validItems.map((i) => i.str).join("\t") + "\n";
+        }
       }
     }
 
