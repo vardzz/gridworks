@@ -211,7 +211,17 @@ export function tokenize(rawLines, isOCR = false) {
   for (const targetField of Object.keys(TARGET_MATCH)) {
     for (let i = 0; i < headerCells.length; i++) {
       const cellLower = headerCells[i].toLowerCase().trim();
-      if (TARGET_MATCH[targetField].some(synonym => cellLower === synonym || cellLower.includes(synonym) || synonym.includes(cellLower))) {
+      if (!cellLower) continue;
+
+      const isMatch = TARGET_MATCH[targetField].some(synonym => {
+        if (cellLower === synonym) return true;
+        if (cellLower.includes(synonym)) return true;
+        // Only allow synonym to include cellLower if it is reasonably long to prevent single-letter false positives
+        if (cellLower.length >= 3 && synonym.includes(cellLower)) return true;
+        return false;
+      });
+
+      if (isMatch) {
         fieldIndexMap[targetField] = i;
         break;
       }
