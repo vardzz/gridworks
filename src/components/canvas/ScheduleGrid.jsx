@@ -54,7 +54,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
   }
 
   return (
-    <div className="schedule-canvas flex bg-[var(--gw-bg-primary)] border border-[var(--gw-border-color)] rounded-lg overflow-hidden shadow-sm">
+    <div className="schedule-canvas flex bg-[var(--gw-bg-primary)] border border-[var(--gw-border-color)] rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500">
       <TimeColumn
         startHour={START_HOUR}
         endHour={END_HOUR}
@@ -69,11 +69,11 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
         return (
           <div
             key={day}
-            className="flex-1 relative border-l border-[var(--gw-border-color)]"
+            className="flex-1 relative border-l border-[var(--gw-border-color)] group/col hover:bg-[var(--gw-text-primary)]/[0.03] transition-colors duration-300"
           >
             {/* Day header */}
-            <div className="h-12 flex items-center justify-center border-b border-[var(--gw-border-color)] bg-[var(--gw-bg-header)] sticky top-0 z-10">
-              <span className="text-xs font-display font-medium text-[var(--gw-text-primary)] uppercase tracking-wider">
+            <div className="h-14 flex items-center justify-center border-b border-[var(--gw-border-color)] bg-[var(--gw-bg-header)]/80 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500">
+              <span className="text-[11px] font-bold text-[var(--gw-text-primary)] uppercase tracking-widest">
                 {day.substring(0, 3)}
               </span>
             </div>

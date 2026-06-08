@@ -43,13 +43,13 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
 
   return (
     <div
-      className="absolute overflow-hidden flex flex-col gap-0.5 p-2 border transition-shadow hover:shadow-md active-schedule-cell group"
+      className="absolute overflow-hidden flex flex-col gap-0.5 p-2.5 sm:p-3 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] hover:z-20 active-schedule-cell group cursor-pointer"
       style={{
         ...style,
         backgroundColor: bgColor,
-        borderColor: "var(--gw-border-color)",
-        borderWidth: "var(--gw-border-width)",
-        borderRadius: "var(--gw-cell-radius)",
+        borderColor: "rgba(255,255,255,0.4)",
+        borderWidth: "1px",
+        borderRadius: "0.75rem", // More rounded like landing page
       }}
     >
       {/* Subject Code */}
@@ -58,7 +58,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("subject_code", 12)}
-          className="font-display font-bold text-sm text-[var(--gw-text-primary)] outline-none focus:ring-1 focus:ring-[var(--gw-accent)] rounded-sm leading-tight truncate"
+          className="font-bold text-sm text-black outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-tight truncate transition-colors"
         >
           {entry.subject_code || ""}
         </div>
@@ -78,18 +78,18 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
         contentEditable
         suppressContentEditableWarning
         onBlur={handleBlur("subject_title", 80)}
-        className="font-body text-xs text-[var(--gw-text-primary)] outline-none focus:ring-1 focus:ring-[var(--gw-accent)] rounded-sm leading-tight truncate opacity-80"
+        className="text-[11px] font-medium text-black/80 outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-snug truncate transition-colors"
       >
         {entry.subject_title || ""}
       </div>
 
       {/* Room + Professor (secondary info) */}
-      <div className="font-body text-[10px] text-[var(--gw-text-secondary)] mt-auto flex items-center gap-1 truncate">
+      <div className="text-[10px] text-black/60 font-medium mt-auto flex items-center gap-1 truncate pt-1">
         <span
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("room", 20)}
-          className="outline-none focus:ring-1 focus:ring-[var(--gw-accent)] rounded-sm"
+          className="outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm transition-colors"
         >
           {entry.room || ""}
         </span>
@@ -98,7 +98,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("professor", 60)}
-          className="outline-none focus:ring-1 focus:ring-[var(--gw-accent)] rounded-sm truncate"
+          className="outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm truncate transition-colors"
         >
           {entry.professor || ""}
         </span>
