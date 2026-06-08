@@ -1,5 +1,17 @@
 import { THEME_PRESETS } from "@/lib/themes";
 
+function getContrastTextColor(hexColor: string) {
+  let hex = hexColor.replace("#", "");
+  if (hex.length === 3) {
+    hex = hex.split("").map(c => c + c).join("");
+  }
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "text-black" : "text-white";
+}
+
 export function ThemesSection() {
   const themes = Object.values(THEME_PRESETS);
 
@@ -25,9 +37,13 @@ export function ThemesSection() {
                 {theme.previewColors.map((color, i) => (
                   <div
                     key={i}
-                    className="h-full flex-1 transition-all duration-500 hover:flex-[1.5]"
+                    className="group/color relative h-full flex-1 transition-all duration-500 hover:flex-[2] flex items-center justify-center"
                     style={{ backgroundColor: color }}
-                  />
+                  >
+                    <span className={`opacity-0 group-hover/color:opacity-100 transition-opacity duration-300 font-semibold text-sm sm:text-base tracking-widest ${getContrastTextColor(color)}`}>
+                      {color.replace('#', '').toUpperCase()}
+                    </span>
+                  </div>
                 ))}
               </div>
               <h3 className="text-2xl font-bold text-black mb-2 tracking-tight">
