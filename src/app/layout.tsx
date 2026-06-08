@@ -30,6 +30,9 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "Gridworks",
   description: "University Schedule Parser & Visualizer",
+  icons: {
+    icon: "/gridworks-logo.png",
+  },
 };
 
 export default function RootLayout({
