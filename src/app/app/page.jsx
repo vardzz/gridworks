@@ -87,6 +87,8 @@ export default function AppPage() {
           parsed_at: new Date().toISOString(),
         });
       }
+      setParseResult(null);
+      setIsManualEntry(false);
       setScreen("canvas");
     },
     [setSchedule, setParseMetadata, parseResult]
@@ -177,7 +179,7 @@ export default function AppPage() {
 
         {screen === "review" && (
           <ReviewScreen
-            parsedEntries={state.schedule?.length > 0 ? state.schedule : (parseResult?.entries || [])}
+            parsedEntries={parseResult ? parseResult.entries : (isManualEntry ? [] : state.schedule)}
             parseMetadata={
               parseResult
                 ? {
