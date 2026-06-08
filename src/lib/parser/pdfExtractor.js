@@ -157,7 +157,7 @@ export async function extractTextFromPDF(file) {
     for (let j = 1; j < tableRows[0].items.length; j++) {
       const item = tableRows[0].items[j];
       const gap = item.x - (currentHeader.x + currentHeader.width);
-      if (gap < 25) { // 25px is a safe threshold for a space between words
+      if (gap < 12) { // 12px is a safe threshold for a space between words without merging columns
         currentHeader.str += " " + item.str;
         currentHeader.width = (item.x + item.width) - currentHeader.x;
       } else {

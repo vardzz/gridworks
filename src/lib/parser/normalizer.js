@@ -70,27 +70,19 @@ export function normalizeDays(daysRaw) {
 
 // Step 6 — Time Parsing
 function parseTo24h(token) {
-  token = token.trim().toLowerCase();
+  if (!token) return null;
+  // Robust regex to extract hours, minutes, and optional am/pm
+  const match = token.match(/(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?/i);
+  if (!match) return null;
   
-  let meridiem = null;
-  if (token.endsWith("pm")) {
-    meridiem = "PM";
-    token = token.replace("pm", "").trim();
-  } else if (token.endsWith("am")) {
-    meridiem = "AM";
-    token = token.replace("am", "").trim();
-  }
-  
-  const parts = token.split(":");
-  if (parts.length !== 2) return null;
-  
-  let h = parseInt(parts[0], 10);
-  let m = parseInt(parts[1], 10);
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const meridiem = match[3] ? match[3].toLowerCase() : null;
   
   if (isNaN(h) || isNaN(m)) return null;
 
-  if (meridiem === "PM" && h !== 12) h += 12;
-  if (meridiem === "AM" && h === 12) h = 0;
+  if (meridiem === "pm" && h !== 12) h += 12;
+  if (meridiem === "am" && h === 12) h = 0;
   
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 }
