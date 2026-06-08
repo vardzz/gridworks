@@ -60,7 +60,7 @@ export default function CanvasScreen({
         <div
           ref={canvasRef}
           data-theme={prefs.theme_id || "minimalist_bureau"}
-          className="w-full max-w-[1200px] mx-auto"
+          className="w-full max-w-[1200px] mx-auto font-display"
           style={canvasOverrides}
         >
           <ScheduleGrid

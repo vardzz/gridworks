@@ -72,24 +72,43 @@ export default function StyleSidebar({
         />
 
         {/* Font Selector */}
-        <div className="space-y-3">
+        <div className="space-y-3 relative">
           <label className="text-xs font-bold text-alabaster-grey-300 uppercase tracking-widest">
             Display Font
           </label>
           <div className="relative">
-            <select
-              value={prefs.font_family || "Inter"}
-              onChange={(e) => onUpdate({ font_family: e.target.value })}
-              className="w-full appearance-none px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 cursor-pointer focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow"
+            <button
+              onClick={() => {
+                const menu = document.getElementById("font-dropdown-menu");
+                menu.classList.toggle("hidden");
+              }}
+              className="w-full text-left px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 cursor-pointer focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow flex justify-between items-center"
+            >
+              {AVAILABLE_FONTS.find(f => f.id === (prefs.font_family || "Inter"))?.name || "Inter"}
+              <svg className="fill-current h-4 w-4 text-alabaster-grey-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </button>
+            
+            {/* Custom Dropdown Menu */}
+            <div 
+              id="font-dropdown-menu" 
+              className="hidden absolute z-50 mt-2 w-full bg-white border border-alabaster-grey/50 rounded-xl shadow-xl overflow-hidden py-1"
             >
               {AVAILABLE_FONTS.map((font) => (
-                <option key={font.id} value={font.id}>
+                <button
+                  key={font.id}
+                  onClick={() => {
+                    onUpdate({ font_family: font.id });
+                    document.getElementById("font-dropdown-menu").classList.add("hidden");
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-100 ${
+                    (prefs.font_family || "Inter") === font.id 
+                      ? "text-prussian-blue-700 bg-blue-50/50" 
+                      : "text-prussian-blue-200"
+                  }`}
+                >
                   {font.name}
-                </option>
+                </button>
               ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-alabaster-grey-400">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
             </div>
           </div>
         </div>
