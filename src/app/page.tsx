@@ -37,9 +37,9 @@ export default function LandingPage() {
           
           {/* Left: Typography */}
           <div className="w-full lg:w-1/2 flex flex-col items-start z-10 pt-4 lg:pt-0 lg:self-start lg:mt-32">
-            <h1 className="text-6xl md:text-7xl xl:text-[7.5rem] font-bold tracking-tighter text-black leading-[0.9] mb-6 xl:mb-8 shrink-0">
+            <h1 className="text-6xl md:text-7xl xl:text-[7.5rem] font-bold tracking-tighter text-black leading-[0.9] mb-6 xl:mb-8 shrink-0 drop-shadow-2xl">
               Schedule.<br />
-              <span className="text-prussian-blue-300">Mastered.</span>
+              <span className="text-prussian-blue-300 drop-shadow-md">Mastered.</span>
             </h1>
             <p className="text-lg md:text-xl xl:text-2xl text-prussian-blue-600 max-w-lg leading-snug mb-8 xl:mb-12 font-medium">
               We transformed the chaotic registration process into an elegant, print-ready grid. Instantly. Privately. Beautifully.
@@ -68,24 +68,30 @@ export default function LandingPage() {
             {/* Pristine Cards */}
             <div className="relative z-10 w-full max-w-md h-[400px]">
               {/* Advanced Design Card */}
-              <div className="absolute top-20 left-0 w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-2xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4 z-10">
-                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
-                <div className="text-4xl font-bold tracking-tight text-black">Advanced<br/>Design</div>
-                <div className="text-sm font-medium text-prussian-blue-600 mt-2">1:00 PM • Studio</div>
+              <div className="absolute top-10 left-[-2rem] z-10 animate-float">
+                <div className="w-96 h-56 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4">
+                  <div className="w-16 h-2.5 bg-[#fca311] mb-5 rounded-full" />
+                  <div className="text-5xl font-bold tracking-tight text-black">Advanced<br/>Design</div>
+                  <div className="text-base font-medium text-prussian-blue-600 mt-3">1:00 PM • Studio</div>
+                </div>
               </div>
 
               {/* CS 101 Card */}
-              <div className="absolute top-0 right-10 w-72 h-40 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-2xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0 z-20">
-                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
-                <div className="text-3xl font-bold tracking-tight text-black">CS 101</div>
-                <div className="text-sm font-medium text-prussian-blue-600 mt-1">9:00 AM • Lecture Hall</div>
+              <div className="absolute top-[-2rem] right-0 z-20 animate-float-delayed">
+                <div className="w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-3xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0">
+                  <div className="w-14 h-2 bg-[#fca311] mb-4 rounded-full" />
+                  <div className="text-4xl font-bold tracking-tight text-black">CS 101</div>
+                  <div className="text-base font-medium text-prussian-blue-600 mt-2">9:00 AM • Lecture Hall</div>
+                </div>
               </div>
 
               {/* Physics II Card */}
-              <div className="absolute top-40 right-0 w-64 h-32 bg-white border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0 z-10">
-                <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
-                <div className="text-2xl font-bold tracking-tight text-black">Physics II</div>
-                <div className="text-sm font-medium text-prussian-blue-600 mt-1">3:30 PM • Lab 4</div>
+              <div className="absolute top-48 right-[-1rem] z-10 animate-float-slow">
+                <div className="w-72 h-40 bg-white border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0">
+                  <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
+                  <div className="text-3xl font-bold tracking-tight text-black">Physics II</div>
+                  <div className="text-sm font-medium text-prussian-blue-600 mt-2">3:30 PM • Lab 4</div>
+                </div>
               </div>
             </div>
           </div>
