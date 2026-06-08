@@ -114,32 +114,32 @@ export default function ReviewScreen({
       {bannerContent}
 
       {/* Table */}
-      <div className="flex-1 overflow-auto border border-[var(--gw-border-color)] rounded-lg">
+      <div className="flex-1 overflow-auto bg-white border border-alabaster-grey shadow-2xl rounded-2xl relative">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--gw-bg-header)] border-b border-[var(--gw-border-color)] sticky top-0 z-10">
-            <tr>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-28">
+          <thead className="bg-alabaster-grey/30 border-b border-alabaster-grey sticky top-0 z-10 backdrop-blur-md">
+            <tr className="h-14">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-28 align-middle">
                 Code
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)]">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] align-middle">
                 Title
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)]">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] align-middle">
                 Professor
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-24">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-28 align-middle">
                 Room
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-56">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-64 align-middle">
                 Days
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-24">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-28 align-middle">
                 Start
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-24">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-28 align-middle">
                 End
               </th>
-              <th className="p-3 font-medium text-[var(--gw-text-secondary)] w-12 text-center">
+              <th className="px-4 font-bold text-black uppercase tracking-widest text-[10px] w-16 text-center align-middle">
                 Del
               </th>
             </tr>

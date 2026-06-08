@@ -18,10 +18,10 @@ export default function ReviewRow({ entry, warnings = [], onChange, onRemove }) 
   const isWarned = (field) => warnings.includes(field);
 
   const inputClass = (field) =>
-    `w-full px-2 py-1.5 text-sm bg-transparent border rounded-md outline-none transition-colors focus:ring-1 focus:ring-[var(--gw-accent)] ${
+    `w-full px-3 py-2 text-sm font-medium text-black bg-transparent border border-transparent rounded-lg hover:border-alabaster-grey hover:bg-white focus:bg-white focus:border-[#fca311] focus:ring-4 focus:ring-[#fca311]/20 outline-none transition-all placeholder:text-alabaster-grey-300 ${
       isWarned(field)
-        ? "border-yellow-400 bg-yellow-50/50"
-        : "border-[var(--gw-border-color)]"
+        ? "!border-[#fca311] !bg-[#fca311]/10"
+        : ""
     }`;
 
   const toggleDay = (day) => {
@@ -33,12 +33,12 @@ export default function ReviewRow({ entry, warnings = [], onChange, onRemove }) 
   };
 
   return (
-    <tr className="border-b border-[var(--gw-border-color)] hover:bg-[var(--gw-bg-header)]/30 transition-colors">
+    <tr className="border-b border-alabaster-grey/50 hover:bg-alabaster-grey/10 transition-colors">
       {/* Subject Code */}
       <td className="p-2">
         <div className="relative">
           {isWarned("subject_code") && (
-            <span className="absolute -left-4 top-1/2 -translate-y-1/2 text-yellow-500 text-xs">⚠</span>
+            <span className="absolute -left-3 top-1/2 -translate-y-1/2 text-[#fca311] text-xs font-bold">!</span>
           )}
           <input
             className={inputClass("subject_code")}
@@ -94,10 +94,10 @@ export default function ReviewRow({ entry, warnings = [], onChange, onRemove }) 
                 key={day}
                 type="button"
                 onClick={() => toggleDay(day)}
-                className={`px-2 py-0.5 text-xs rounded-full border transition-all cursor-pointer ${
+                className={`px-3 py-1 text-xs font-bold rounded-full border transition-all shadow-sm cursor-pointer ${
                   isActive
-                    ? "bg-[var(--gw-accent)] text-white border-[var(--gw-accent)]"
-                    : "bg-transparent text-[var(--gw-text-secondary)] border-[var(--gw-border-color)] hover:border-[var(--gw-accent)]"
+                    ? "bg-[#0d1b2a] text-white border-[#0d1b2a] scale-105 shadow-md"
+                    : "bg-white text-alabaster-grey-400 border-alabaster-grey hover:text-black hover:border-black"
                 }`}
               >
                 {abbr}
