@@ -100,7 +100,7 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 py-12">
+    <div className="flex flex-col items-center justify-center h-full p-6 md:p-12">
       {/* Consent Modal */}
       {consentNeeded && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -152,16 +152,16 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
       )}
 
       {/* Drop Zone */}
-      <div className="w-full max-w-2xl flex flex-col relative group cursor-pointer"
+      <div className="w-full max-w-xl aspect-[4/3] flex flex-col relative group cursor-pointer"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => fileInputRef.current?.click()}
       >
-        <div className={`w-full bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden transition-all duration-300 ${isDragging ? "scale-[1.02] shadow-2xl" : ""} ${isLoading ? "pointer-events-none opacity-70" : ""}`}>
+        <div className={`w-full h-full bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden transition-all duration-300 ${isDragging ? "scale-[1.02] shadow-2xl" : ""} ${isLoading ? "pointer-events-none opacity-70" : ""}`}>
           <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#fca311] to-prussian-blue-300 transition-opacity duration-700 ${isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
           
-          <div className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-16 md:p-24 relative overflow-hidden transition-colors duration-500 ${isDragging ? "border-prussian-blue-300 bg-prussian-blue/5" : "border-alabaster-grey-900 bg-alabaster-grey/20 group-hover:border-prussian-blue-300"}`}>
+          <div className={`border-2 border-dashed rounded-xl h-full flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500 ${isDragging ? "border-prussian-blue-300 bg-prussian-blue/5" : "border-alabaster-grey-900 bg-alabaster-grey/20 group-hover:border-prussian-blue-300"}`}>
             
             {isLoading ? (
               <div className="flex flex-col items-center gap-4 z-10">
