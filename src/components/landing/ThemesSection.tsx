@@ -21,16 +21,14 @@ export function ThemesSection() {
               key={theme.id}
               className={`group cursor-pointer ${idx % 2 === 1 ? 'lg:mt-24' : ''}`}
             >
-              <div className="aspect-[4/5] bg-alabaster-grey-900 border border-alabaster-grey mb-6 relative overflow-hidden transition-all duration-500 group-hover:border-black">
-                <div className="absolute inset-x-0 bottom-0 h-1/2 flex flex-col justify-end p-6 gap-2">
-                  {theme.previewColors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="h-8 w-full transition-transform duration-700 group-hover:translate-x-2"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
+              <div className="h-24 w-full flex rounded-2xl overflow-hidden mb-6 shadow-md ring-1 ring-inset ring-black/10 transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2">
+                {theme.previewColors.map((color, i) => (
+                  <div
+                    key={i}
+                    className="h-full flex-1 transition-all duration-500 hover:flex-[1.5]"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
               </div>
               <h3 className="text-2xl font-bold text-black mb-2 tracking-tight">
                 {theme.name}
