@@ -66,16 +66,16 @@ export function normalizeDays(daysRaw) {
 function parseTo24h(token) {
   if (!token) return null;
   token = token.trim().toLowerCase();
+  
   let meridiem = null;
-  if (token.endsWith("pm")) { meridiem = "pm"; token = token.slice(0,-2).trim(); }
-  if (token.endsWith("am")) { meridiem = "am"; token = token.slice(0,-2).trim(); }
+  if (token.endsWith("pm")) { meridiem = "pm"; token = token.slice(0, -2).trim(); }
+  else if (token.endsWith("am")) { meridiem = "am"; token = token.slice(0, -2).trim(); }
 
   const parts = token.split(":");
   let h = parseInt(parts[0], 10);
-  let m = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+  let m = parseInt(parts[1], 10);
   
-  if (isNaN(h)) return null;
-  if (isNaN(m)) m = 0;
+  if (isNaN(h) || isNaN(m)) return null;
 
   if (meridiem === "pm" && h !== 12) h += 12;
   if (meridiem === "am" && h === 12) h = 0;
@@ -84,8 +84,11 @@ function parseTo24h(token) {
 }
 
 function parseTimeRange(timeStr) {
-  const parts = timeStr.split(/\s*[-–]\s*/);
+  if (!timeStr) return { start_time: null, end_time: null };
+
+  const parts = timeStr.split(/\s*[-–—]\s*/);
   if (parts.length < 2) return { start_time: null, end_time: null };
+  
   return {
     start_time: parseTo24h(parts[0]),
     end_time:   parseTo24h(parts[1])

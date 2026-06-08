@@ -18,6 +18,29 @@ const END_MARKERS = [
   "registrar", "dean", "total", "signature", "assessment of fees", "registered"
 ];
 
+const HEADER_NOISE_PATTERNS = [
+  /^units$/i,
+  /^lec$/i,
+  /^lab$/i,
+  /^section$/i,
+  /^no\.?$/i,
+  /^hrs?\.?$/i
+];
+
+function isHeaderNoiseLine(cells) {
+  const firstCell = cells[0].trim();
+  return HEADER_NOISE_PATTERNS.some(pattern => pattern.test(firstCell));
+}
+
+function isValidCourseCode(str) {
+  return /^[A-Z]{2,5}\d{2,4}[A-Z]?$/.test(str.trim());
+}
+
+function readMultiValue(cellValue) {
+  if (!cellValue) return [];
+  return cellValue.split(" / ").map(s => s.trim()).filter(Boolean);
+}
+
 function isHeaderLine(line) {
   const lower = line.toLowerCase();
   const matches = TRIGGER_WORDS.filter(word => lower.includes(word));
@@ -104,21 +127,28 @@ export function tokenize(rawLines) {
       cells.unshift("");
     }
 
+    if (isHeaderNoiseLine(cells)) continue;
+
+    if (cells[0].trim() !== "" && !isValidCourseCode(cells[0])) {
+      continue;
+    }
+
     const isContinuation = isContinuationLine(cells);
 
     if (!isContinuation) {
+      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
+      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
+      
+      const rawTimeValues = readMultiValue(t);
+      const rawRoomValues = readMultiValue(r);
+
       const entry = {
         subject_code:  (fieldIndexMap.course_code !== undefined && cells[fieldIndexMap.course_code]) ? cells[fieldIndexMap.course_code].trim() : "",
         subject_title: (fieldIndexMap.course_title !== undefined && cells[fieldIndexMap.course_title]) ? cells[fieldIndexMap.course_title].trim() : "",
         days_raw:      (fieldIndexMap.day !== undefined && cells[fieldIndexMap.day]) ? cells[fieldIndexMap.day].trim() : "",
-        times_raw:     [],
-        rooms_raw:     []
+        times_raw:     rawTimeValues,
+        rooms_raw:     rawRoomValues
       };
-      
-      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
-      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
-      if (t) entry.times_raw.push(t);
-      if (r) entry.rooms_raw.push(r);
       
       entries.push(entry);
     } else {
@@ -128,8 +158,11 @@ export function tokenize(rawLines) {
       const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
       const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
       
-      if (t) lastEntry.times_raw.push(t);
-      if (r) lastEntry.rooms_raw.push(r);
+      const rawTimeValues = readMultiValue(t);
+      const rawRoomValues = readMultiValue(r);
+
+      lastEntry.times_raw.push(...rawTimeValues);
+      lastEntry.rooms_raw.push(...rawRoomValues);
     }
   }
 
