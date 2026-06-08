@@ -35,18 +35,69 @@ export async function extractTextFromPDF(file) {
       return a.transform[4] - b.transform[4];
     });
 
-    let pageText = "";
+    // Group into physical rows based on Y coordinate
+    const rows = [];
+    let currentRow = [];
     let lastY = null;
 
     for (const item of sortedItems) {
       const y = item.transform[5];
       if (lastY !== null && Math.abs(y - lastY) > 3) {
-        pageText += "\n";
-      } else if (pageText !== "" && !pageText.endsWith("\n")) {
-        pageText += " ";
+        rows.push(currentRow);
+        currentRow = [];
       }
-      pageText += item.str;
+      currentRow.push({
+        x: item.transform[4],
+        y: y,
+        str: item.str.trim()
+      });
       lastY = y;
+    }
+    if (currentRow.length > 0) rows.push(currentRow);
+
+    // Merge continuation rows into their parent row based on X coordinate
+    const mergedRows = [];
+    let baseRow = null;
+
+    for (const row of rows) {
+      const validItems = row.filter((i) => i.str !== "");
+      if (validItems.length === 0) continue;
+
+      const firstStr = validItems[0].str;
+      // Detect new schedule entry (has subject code OR has many columns)
+      const isNewEntry =
+        /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/.test(firstStr) || validItems.length > 4;
+
+      if (isNewEntry || !baseRow) {
+        baseRow = validItems;
+        mergedRows.push(baseRow);
+      } else {
+        // Continuation row: find the closest X in baseRow and append it
+        for (const item of validItems) {
+          let closestMatch = null;
+          let minDiff = Infinity;
+          for (const baseItem of baseRow) {
+            const diff = Math.abs(baseItem.x - item.x);
+            if (diff < minDiff) {
+              minDiff = diff;
+              closestMatch = baseItem;
+            }
+          }
+          // If within 80px, it's definitely the same column
+          if (closestMatch && minDiff < 80) {
+            closestMatch.str += " " + item.str;
+          } else {
+            baseRow.push(item);
+          }
+        }
+      }
+    }
+
+    // Reconstruct page text from merged rows
+    let pageText = "";
+    for (const row of mergedRows) {
+      row.sort((a, b) => a.x - b.x);
+      pageText += row.map((i) => i.str).join(" ") + "\n";
     }
 
     fullText += pageText + "\n";
