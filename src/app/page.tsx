@@ -49,7 +49,7 @@ export default function LandingPage() {
                 href="/app"
                 className="bg-[#fca311] text-black px-8 xl:px-10 py-4 xl:py-5 rounded-full text-base xl:text-lg font-bold transition-all shadow-[0_4px_20px_rgba(252,163,17,0.4)] hover:-translate-y-1 hover:scale-105 active:scale-95"
               >
-                Try for free
+                Try now
               </Link>
               <Link
                 href="#features"
