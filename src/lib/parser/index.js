@@ -1,127 +1,125 @@
-// src/lib/parser/index.js — Main parseFile() orchestrator (PRD §9 full pipeline)
+// src/lib/parser/index.js — Main parseFile() orchestrator
+
 import { extractTextFromPDF } from "./pdfExtractor";
 import { extractTextFromImage } from "./ocrExtractor";
 import { tokenize } from "./regexTokenizer";
+import { normalizeEntries } from "./normalizer";
 import { scoreDocument } from "./confidenceScorer";
 import { preCheckIsRegistrationForm } from "./llmFallback";
-import { normalizeEntries } from "./normalizer";
 import { sanitizeEntry } from "@/lib/sanitize";
+
+/**
+ * Converts raw plaintext from OCR into a pseudo-2D structured object.
+ * Treats each line as a row, splitting by tabs or 2+ spaces.
+ * 
+ * @param {string} rawText 
+ * @returns {Object} { headers: string[], rows: Object[] }
+ */
+function convertOCRToStructuredData(rawText) {
+  if (!rawText) return { headers: [], rows: [] };
+  
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { headers: [], rows: [] };
+
+  const headers = lines[0].split(/\t|\s{2,}/).map(h => h.trim());
+  const rows = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split(/\t|\s{2,}/).map(c => c.trim());
+    const rowObj = {};
+    for (let j = 0; j < headers.length; j++) {
+      rowObj[headers[j]] = cells[j] || "";
+    }
+    rows.push(rowObj);
+  }
+
+  return { headers, rows };
+}
 
 /**
  * Full parsing pipeline orchestrator.
  *
- * Pipeline order:
- *   1. Validate MIME type
- *   2. (Image only) Pre-check if it's a schedule via Gemini
- *   3. Extract raw text (PDF → pdf.js, Image → Tesseract.js)
- *   4. Empty PDF detection → fallback to OCR
- *   5. Regex tokenization
- *   6. Confidence scoring
- *   7. LLM fallback if confidence < 0.7
- *   8. Assign UUIDs and sanitize
- *
  * @param {File} file
  * @param {Object} options
  * @param {function} options.onProgress — OCR progress callback (0-100)
- * @param {boolean} options.skipLLM — skip LLM fallback
  * @param {boolean} options.skipPreCheck — skip Gemini image pre-check
- * @returns {Promise<Object>} — { entries, confidence, rawText, sourceType, error }
+ * @returns {Promise<Object>} — { entries, confidence, error }
  */
 export async function parseFile(file, options = {}) {
-  const { onProgress, skipLLM = false, skipPreCheck = false } = options;
+  const { onProgress, skipPreCheck = false } = options;
 
   // ── 1. Validate MIME type ─────────────────────────────────────────
   const validTypes = ["application/pdf", "image/png", "image/jpeg"];
   if (!validTypes.includes(file.type)) {
-    return {
-      entries: [],
-      confidence: 0,
-      rawText: "",
-      sourceType: null,
-      error: "unsupported_type",
-    };
+    return { entries: [], confidence: 0, error: "unsupported_type" };
   }
 
-  // File size guard: 10 MB
   if (file.size > 10 * 1024 * 1024) {
-    return {
-      entries: [],
-      confidence: 0,
-      rawText: "",
-      sourceType: null,
-      error: "file_too_large",
-    };
+    return { entries: [], confidence: 0, error: "file_too_large" };
   }
 
   const isImage = file.type.startsWith("image/");
-  const sourceType = isImage ? "image" : "pdf";
+  let structuredData = null;
 
   // ── 2. Image pre-check ────────────────────────────────────────────
   if (isImage && !skipPreCheck) {
     const check = await preCheckIsRegistrationForm(file);
     if (!check.isValid) {
-      return {
-        entries: [],
-        confidence: 0,
-        rawText: "",
-        sourceType,
-        error: "not_a_schedule",
-      };
+      return { entries: [], confidence: 0, error: "not_a_registration_form" };
     }
   }
 
-  // ── 3. Extract raw text ───────────────────────────────────────────
-  let rawText = "";
-
+  // ── 3 & 4. Extraction ─────────────────────────────────────────────
   if (isImage) {
-    rawText = await extractTextFromImage(file, onProgress);
+    const rawText = await extractTextFromImage(file, onProgress);
+    structuredData = convertOCRToStructuredData(rawText);
   } else {
-    rawText = await extractTextFromPDF(file);
-  }
-
-  // ── 4. Empty PDF detection — fallback to OCR ──────────────────────
-  if (!isImage) {
-    if (rawText.trim().length < 50 && file.size > 100 * 1024) {
-      console.warn("Pre-flight failed: Image-based or unreadable PDF detected. Routing to OCR.");
-      try {
-        rawText = await extractTextFromImage(file, onProgress);
-      } catch (err) {
-        console.error("OCR failed on PDF:", err);
+    try {
+      structuredData = await extractTextFromPDF(file);
+    } catch (error) {
+      if (error.code === "IMAGE_BASED_PDF") {
+        console.warn("Pre-flight failed: Image-based PDF detected. Routing to OCR.");
+        try {
+          const rawText = await extractTextFromImage(file, onProgress);
+          structuredData = convertOCRToStructuredData(rawText);
+        } catch (err) {
+          console.error("OCR failed on PDF:", err);
+          return { entries: [], confidence: 0, error: "extraction_failed" };
+        }
+      } else {
+        console.error("PDF extraction failed:", error);
+        return { entries: [], confidence: 0, error: "extraction_failed" };
       }
     }
   }
 
-  // Check for total extraction failure
-  if (!rawText || rawText.trim().length < 10) {
-    return {
-      entries: [],
-      confidence: 0,
-      rawText,
-      sourceType,
-      error: "extraction_failed",
-    };
+  if (!structuredData || !structuredData.rows || structuredData.rows.length === 0) {
+    return { entries: [], confidence: 0, error: "extraction_failed" };
   }
 
-  // ── 5. Tokenization & Normalization ──────────────────────────────
-  let entries = tokenize(rawText);
-  entries = normalizeEntries(entries);
-  let confidence = scoreDocument(entries);
+  // ── 5. Tokenize ───────────────────────────────────────────────────
+  const rawEntries = tokenize(structuredData);
 
-  // ── 8. Assign IDs, sanitize ───────────────────────────────────────
-  const finalEntries = entries.map((entry) => {
+  // ── 6. Normalize ──────────────────────────────────────────────────
+  const finalEntries = normalizeEntries(rawEntries);
+
+  // ── 7 & 8. Assign IDs and sanitize ────────────────────────────────
+  const sanitizedEntries = finalEntries.map((entry) => {
     const sanitized = sanitizeEntry(entry);
     return {
       ...sanitized,
       id: crypto.randomUUID(),
-      color_override: entry.color_override || null,
+      color_override: null,
     };
   });
 
+  // ── 9. Score ──────────────────────────────────────────────────────
+  const confidence = scoreDocument(sanitizedEntries);
+
+  // ── 10. Return ────────────────────────────────────────────────────
   return {
-    entries: finalEntries,
+    entries: sanitizedEntries,
     confidence,
-    rawText,
-    sourceType,
     error: null,
   };
 }

@@ -1,38 +1,15 @@
-// src/lib/parser/normalizer.js — Days/time normalization to canonical format
+// src/lib/parser/normalizer.js — Normalizes raw structured entries into schema objects
 
 const DAY_MAP = {
-  m: "Monday",
-  mo: "Monday",
-  mon: "Monday",
-  monday: "Monday",
-  t: "Tuesday",
-  tu: "Tuesday",
-  tue: "Tuesday",
-  tues: "Tuesday",
-  tuesday: "Tuesday",
-  w: "Wednesday",
-  we: "Wednesday",
-  wed: "Wednesday",
-  wednesday: "Wednesday",
-  th: "Thursday",
-  thu: "Thursday",
-  thur: "Thursday",
-  thurs: "Thursday",
-  thursday: "Thursday",
-  f: "Friday",
-  fr: "Friday",
-  fri: "Friday",
-  friday: "Friday",
-  s: "Saturday",
-  sa: "Saturday",
-  sat: "Saturday",
-  saturday: "Saturday",
-  su: "Sunday",
-  sun: "Sunday",
-  sunday: "Sunday",
+  m: "Monday", mo: "Monday", mon: "Monday", monday: "Monday",
+  t: "Tuesday", tu: "Tuesday", tue: "Tuesday", tues: "Tuesday", tuesday: "Tuesday",
+  w: "Wednesday", we: "Wednesday", wed: "Wednesday", wednesday: "Wednesday",
+  th: "Thursday", thu: "Thursday", thur: "Thursday", thurs: "Thursday", thursday: "Thursday",
+  f: "Friday", fr: "Friday", fri: "Friday", friday: "Friday",
+  s: "Saturday", sa: "Saturday", sat: "Saturday", saturday: "Saturday",
+  su: "Sunday", sun: "Sunday", sunday: "Sunday",
 };
 
-// Compound shortcodes that must be recognized as multiple days
 const COMPOUND_MAP = {
   mwf: ["Monday", "Wednesday", "Friday"],
   mw: ["Monday", "Wednesday"],
@@ -41,60 +18,40 @@ const COMPOUND_MAP = {
   wth: ["Wednesday", "Thursday"],
   "t/th": ["Tuesday", "Thursday"],
   tr: ["Tuesday", "Thursday"],
+  tf: ["Tuesday", "Friday"],
+  wf: ["Wednesday", "Friday"],
   mtwthf: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
   mtwtf: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
   mtwrf: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
 };
 
-/**
- * Normalizes a raw days string or array into canonical full day names.
- * Handles: single letters, abbreviations, compound shortcodes,
- * slash/comma/space-separated lists.
- *
- * @param {string|string[]} rawDayInput
- * @returns {string[]} — deduplicated array of full day names
- */
 export function normalizeDays(rawDayInput) {
   if (!rawDayInput) return [];
-
-  // If already an array, normalize each element
   if (Array.isArray(rawDayInput)) {
     const result = [];
-    for (const token of rawDayInput) {
-      result.push(...normalizeDays(token));
-    }
+    for (const token of rawDayInput) result.push(...normalizeDays(token));
     return [...new Set(result)];
   }
 
   const raw = rawDayInput.trim().toLowerCase();
   if (!raw) return [];
 
-  // Check compound shortcodes first
-  if (COMPOUND_MAP[raw]) {
-    return [...COMPOUND_MAP[raw]];
-  }
+  if (COMPOUND_MAP[raw]) return [...COMPOUND_MAP[raw]];
 
-  // Split on common delimiters: slash, comma, space, dash
+  // Split on slash, comma, space, dash
   const tokens = raw.split(/[\s,/\-]+/).filter(Boolean);
 
-  // If only one token, try to split letter-by-letter patterns like "MWF"
   if (tokens.length === 1 && tokens[0].length > 1) {
     const token = tokens[0];
+    if (COMPOUND_MAP[token]) return [...COMPOUND_MAP[token]];
 
-    // Check compound map
-    if (COMPOUND_MAP[token]) {
-      return [...COMPOUND_MAP[token]];
-    }
-
-    // Try letter-by-letter splitting with "th" awareness
     const letterDays = [];
     let i = 0;
     while (i < token.length) {
-      // Check for "th" as Thursday (but not at start if preceded by nothing)
       if (i + 1 < token.length && token[i] === "t" && token[i + 1] === "h") {
         letterDays.push("Thursday");
         i += 2;
-      } else if (i + 2 < token.length && token.substring(i, i + 2) === "su") {
+      } else if (i + 1 < token.length && token[i] === "s" && token[i + 1] === "u") {
         letterDays.push("Sunday");
         i += 2;
       } else {
@@ -104,13 +61,9 @@ export function normalizeDays(rawDayInput) {
         i++;
       }
     }
-
-    if (letterDays.length > 0) {
-      return [...new Set(letterDays)];
-    }
+    if (letterDays.length > 0) return [...new Set(letterDays)];
   }
 
-  // Standard token-by-token lookup
   const result = [];
   for (const token of tokens) {
     const day = DAY_MAP[token];
@@ -124,32 +77,24 @@ export function normalizeDays(rawDayInput) {
   return [...new Set(result)];
 }
 
-/**
- * Normalizes a 12-hour or 24-hour time string to canonical HH:MM 24-hour format.
- * Handles: "8:00 AM", "08:00am", "1:30PM", "13:30", "8:00", etc.
- *
- * @param {string} timeStr
- * @returns {string|null} — "HH:MM" or null if unparseable
- */
-export function normalizeTime(timeStr) {
+function parseTime(timeStr) {
   if (!timeStr || typeof timeStr !== "string") return null;
-
   const cleaned = timeStr.trim().replace(/\s+/g, "");
 
-  // Try 12-hour format: "8:00AM", "08:00 am", "1:30PM"
-  const match12 = cleaned.match(/^(\d{1,2}):(\d{2})\s*([apAP][mM]?)$/);
-  if (match12) {
-    let hours = parseInt(match12[1], 10);
-    const mins = match12[2];
-    const meridiem = match12[3].toLowerCase();
+  // match "8:00am", "1:30PM"
+  const match = cleaned.match(/^(\d{1,2}):(\d{2})([apAP][mM]?)$/);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const mins = match[2];
+    const meridiem = match[3].toLowerCase();
 
-    if (meridiem.startsWith("p") && hours < 12) hours += 12;
+    if (meridiem.startsWith("p") && hours !== 12) hours += 12;
     if (meridiem.startsWith("a") && hours === 12) hours = 0;
 
     return `${hours.toString().padStart(2, "0")}:${mins}`;
   }
 
-  // Try 24-hour format: "13:30", "08:00"
+  // match "13:30"
   const match24 = cleaned.match(/^(\d{1,2}):(\d{2})$/);
   if (match24) {
     const hours = parseInt(match24[1], 10);
@@ -162,28 +107,14 @@ export function normalizeTime(timeStr) {
   return null;
 }
 
-/**
- * Normalizes an array of raw entry objects, handling multi-slot splitting.
- *
- * @param {Array<Object>} rawEntries
- * @returns {Array<Object>} — final normalized entry array ready for confidence scoring
- */
 export function normalizeEntries(rawEntries) {
   const result = [];
 
   for (const raw of rawEntries) {
-    // If it came from the regex fallback, it already has normalized keys
-    if (raw.subject_code && !raw.times_raw) {
-      result.push(raw);
-      continue;
-    }
-
     const baseEntry = {
-      subject_code: raw.course_code || null,
-      subject_title: raw.course_title || null,
-      professor: raw.professor || null,
+      course_code: raw.course_code || null,
+      course_title: raw.course_title || null,
       days: raw.days_raw ? normalizeDays(raw.days_raw) : [],
-      color_override: null
     };
 
     if (!raw.times_raw || raw.times_raw.length === 0) {
@@ -196,18 +127,19 @@ export function normalizeEntries(rawEntries) {
       continue;
     }
 
-    // Split multiple times into separate entries
     for (let i = 0; i < raw.times_raw.length; i++) {
       const timeStr = raw.times_raw[i];
       let start_time = null;
       let end_time = null;
 
-      const timeRangeMatch = timeStr.match(/(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—\/]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/);
-      if (timeRangeMatch) {
-        start_time = normalizeTime(timeRangeMatch[1]);
-        end_time = normalizeTime(timeRangeMatch[2]);
+      // split on " - ", "–", "—", " to "
+      const parts = timeStr.split(/\s*[-–—]\s*|\s+to\s+/i);
+      if (parts.length === 2) {
+        start_time = parseTime(parts[0]);
+        end_time = parseTime(parts[1]);
       } else {
-        start_time = normalizeTime(timeStr);
+        start_time = null;
+        end_time = null;
       }
 
       result.push({
