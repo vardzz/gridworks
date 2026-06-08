@@ -64,8 +64,8 @@ export function tokenize(structuredData) {
   for (const row of structuredData.rows) {
     if (!isContinuationRow(row, fieldMap)) {
       const entry = {
-        course_code: readField(row, fieldMap, "course_code"),
-        course_title: readField(row, fieldMap, "course_title"),
+        subject_code: readField(row, fieldMap, "course_code"),
+        subject_title: readField(row, fieldMap, "course_title"),
         days_raw: readField(row, fieldMap, "day"),
         times_raw: [],
         rooms_raw: []

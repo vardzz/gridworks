@@ -20,8 +20,8 @@ export function sanitizeString(value, maxLength = 100) {
 export function sanitizeEntry(entry) {
   return {
     ...entry,
-    subject_code: sanitizeString(entry.subject_code || "", 12),
-    subject_title: sanitizeString(entry.subject_title || "", 80),
+    subject_code: sanitizeString(entry.subject_code || entry.course_code || "", 12),
+    subject_title: sanitizeString(entry.subject_title || entry.course_title || "", 80),
     professor: sanitizeString(entry.professor || "", 60),
     room: sanitizeString(entry.room || "", 20),
     days: Array.isArray(entry.days) ? entry.days : [],

@@ -104,8 +104,8 @@ export function normalizeEntries(rawEntries) {
     
     if (N === 0) {
       output.push({
-        course_code: entry.course_code,
-        course_title: entry.course_title,
+        subject_code: entry.subject_code,
+        subject_title: entry.subject_title,
         days: normalizeDays(entry.days_raw),
         start_time: null,
         end_time: null,
@@ -127,8 +127,8 @@ export function normalizeEntries(rawEntries) {
       }
       
       output.push({
-        course_code: entry.course_code,
-        course_title: entry.course_title,
+        subject_code: entry.subject_code,
+        subject_title: entry.subject_title,
         days: normalizeDays(entry.days_raw),
         start_time: start,
         end_time: end,

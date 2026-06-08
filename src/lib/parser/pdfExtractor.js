@@ -17,12 +17,18 @@ const END_MARKERS = [
 ];
 
 function isTargetHeaderRow(row) {
+  // Concatenate ALL item strings in the row into one searchable string.
+  // This is critical because pdf.js splits "Course Code" into two separate
+  // text items "Course" and "Code". Checking individual items against
+  // "course code" would never match.
+  const rowText = row.items.map(it => it.str.toLowerCase().trim()).join(" ");
+  
   let matchCount = 0;
   for (const synonymGroup of TARGET_HEADER_SYNONYMS) {
-    for (const item of row.items) {
-      if (synonymGroup.includes(item.str.toLowerCase().trim())) {
+    for (const synonym of synonymGroup) {
+      if (rowText.includes(synonym)) {
         matchCount++;
-        break;
+        break; // count each group at most once
       }
     }
   }
