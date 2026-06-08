@@ -78,7 +78,7 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
         contentEditable
         suppressContentEditableWarning
         onBlur={handleBlur("subject_title", 80)}
-        className="text-[11px] font-medium text-black/80 outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-snug truncate transition-colors"
+        className="text-[11px] font-medium text-black/80 outline-none focus:ring-2 focus:ring-[#fca311]/50 focus:bg-white/50 rounded-sm leading-snug line-clamp-3 break-words transition-colors"
       >
         {entry.subject_title || ""}
       </div>
