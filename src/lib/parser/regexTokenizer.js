@@ -229,11 +229,11 @@ export function tokenize(rawLines, isOCR = false) {
 
   // Map spatial bounds to target fields
   const fieldBounds = {};
-  for (const header of headers) {
-    const cellLower = header.text.toLowerCase().trim();
-    if (!cellLower) continue;
+  for (const targetField of Object.keys(TARGET_MATCH)) {
+    for (const header of headers) {
+      const cellLower = header.text.toLowerCase().trim();
+      if (!cellLower) continue;
 
-    for (const targetField of Object.keys(TARGET_MATCH)) {
       const isMatch = TARGET_MATCH[targetField].some(synonym => {
         if (cellLower === synonym) return true;
         if (cellLower.includes(synonym)) return true;
