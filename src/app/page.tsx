@@ -42,7 +42,7 @@ export default function LandingPage() {
               <span className="text-prussian-blue-300 drop-shadow-md">Mastered.</span>
             </h1>
             <p className="text-lg md:text-xl xl:text-2xl text-prussian-blue-600 max-w-lg leading-snug mb-8 xl:mb-12 font-medium">
-              We transformed the chaotic registration process into an elegant, print-ready grid. Instantly. Privately. Beautifully.
+              Gridworks reads your university schedule PDF and renders it as a print-ready, style grid - instantly, entirely in your browser. No sign-up. No servers. Just results.
             </p>
             <div className="flex flex-wrap items-center gap-4 xl:gap-6">
               <Link
