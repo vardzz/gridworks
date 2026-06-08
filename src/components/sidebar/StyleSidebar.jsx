@@ -45,14 +45,14 @@ export default function StyleSidebar({
   return (
     <div className="w-72 border-l border-alabaster-grey bg-white flex flex-col overflow-hidden shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-alabaster-grey">
-        <span className="text-sm font-semibold text-prussian-blue-200">Style</span>
+      <div className="flex items-center justify-between px-6 py-5 border-b border-alabaster-grey/50">
+        <span className="text-base font-bold text-prussian-blue-200 tracking-wide">Style</span>
         <button
           onClick={() => setIsCollapsed(true)}
-          className="text-alabaster-grey-400 hover:text-prussian-blue-700 transition-colors cursor-pointer text-sm"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 text-alabaster-grey-400 hover:text-prussian-blue-700 transition-all cursor-pointer"
           title="Collapse sidebar"
         >
-          ▶
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>
 
@@ -72,21 +72,26 @@ export default function StyleSidebar({
         />
 
         {/* Font Selector */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
+        <div className="space-y-3">
+          <label className="text-xs font-bold text-alabaster-grey-300 uppercase tracking-widest">
             Display Font
           </label>
-          <select
-            value={prefs.font_family || "Inter"}
-            onChange={(e) => onUpdate({ font_family: e.target.value })}
-            className="w-full px-3 py-2 text-sm border border-alabaster-grey rounded-lg bg-white cursor-pointer"
-          >
-            {AVAILABLE_FONTS.map((font) => (
-              <option key={font.id} value={font.id}>
-                {font.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={prefs.font_family || "Inter"}
+              onChange={(e) => onUpdate({ font_family: e.target.value })}
+              className="w-full appearance-none px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 cursor-pointer focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow"
+            >
+              {AVAILABLE_FONTS.map((font) => (
+                <option key={font.id} value={font.id}>
+                  {font.name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-alabaster-grey-400">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
+          </div>
         </div>
 
         {/* Paper Size */}
@@ -126,16 +131,16 @@ export default function StyleSidebar({
         >
           Export PDF
         </button>
-        <div className="flex gap-2 pt-1">
+        <div className="flex gap-2 pt-2">
           <button
             onClick={onReUpload}
-            className="flex-1 py-2 text-xs text-alabaster-grey-300 hover:text-prussian-blue-700 transition-colors cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center bg-transparent text-prussian-blue-200 py-2.5 rounded-full text-sm font-bold transition-all hover:bg-neutral-200 cursor-pointer"
           >
             Re-upload
           </button>
           <button
             onClick={onReset}
-            className="flex-1 py-2 text-xs text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+            className="flex-1 inline-flex items-center justify-center bg-transparent text-red-500 py-2.5 rounded-full text-sm font-bold transition-all hover:bg-red-50 cursor-pointer"
           >
             Reset
           </button>
