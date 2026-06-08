@@ -164,7 +164,7 @@ export default function StyleSidebar({
   const defaultAccent = activeTheme?.previewColors[3] || "#2d5be3";
 
   return (
-    <div className="w-72 border-l border-alabaster-grey bg-white flex flex-col overflow-hidden shrink-0">
+    <div className="w-72 border-l border-alabaster-grey bg-white flex flex-col overflow-hidden shrink-0 h-full">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-alabaster-grey/50">
         <span className="text-base font-bold text-prussian-blue-200 tracking-wide">Style</span>

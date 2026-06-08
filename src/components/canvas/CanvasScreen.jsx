@@ -104,7 +104,7 @@ export default function CanvasScreen({
       </div>
 
       {/* ═══ Desktop Style Sidebar (visible lg and up) ═══ */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block h-full">
         <StyleSidebar
           prefs={prefs}
           onUpdate={updatePreferences}
