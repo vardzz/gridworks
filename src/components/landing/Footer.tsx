@@ -32,9 +32,23 @@ export function Footer() {
         </div>
 
         {/* Massive Typography */}
-        <div className="w-full mb-16 md:mb-24 flex items-center justify-center pointer-events-none select-none">
-          <h1 className="text-[16vw] xl:text-[230px] leading-[0.75] font-bold tracking-tighter text-prussian-blue -ml-[0.05em]">
-            Gridworks
+        <div className="w-full mb-16 md:mb-24 flex items-center justify-center pointer-events-auto select-none">
+          <h1 
+            className="text-[16vw] xl:text-[230px] leading-[0.75] font-bold tracking-tighter text-prussian-blue -ml-[0.05em] flex items-baseline group cursor-default"
+            aria-label="Gridworks"
+          >
+            <span aria-hidden="true">Gr</span>
+            <span className="relative inline-flex justify-center" aria-hidden="true">
+              {/* The Witty Grid Dot */}
+              <span className="absolute bottom-[0.75em] grid grid-cols-2 gap-[2px] md:gap-[4px] w-[0.18em] h-[0.18em] transition-all duration-700 ease-out group-hover:gap-[8px] md:group-hover:gap-[12px] group-hover:-translate-y-4 group-hover:rotate-12">
+                 <span className="bg-[#fca311] rounded-sm" />
+                 <span className="bg-prussian-blue-300 rounded-sm" />
+                 <span className="bg-prussian-blue-600 rounded-sm" />
+                 <span className="bg-[#fca311] rounded-sm" />
+              </span>
+              <span>ı</span>
+            </span>
+            <span aria-hidden="true">dworks</span>
           </h1>
         </div>
 
