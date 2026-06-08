@@ -68,7 +68,7 @@ export function FeaturesSection() {
               
               <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:2rem_2rem]" />
 
-              <div className="w-full h-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-alabaster-grey translate-y-4 group-hover:translate-y-0 transition-transform duration-700 relative z-10">
+              <div className="w-full h-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-alabaster-grey translate-y-4 max-sm:translate-y-0 group-hover:translate-y-0 transition-transform duration-700 relative z-10">
                 <div className="h-16 border-b border-alabaster-grey flex items-center justify-between px-6 bg-alabaster-grey/30">
                   <div className="text-base font-bold text-black flex items-center gap-2">
                     <CheckCircle2 className="text-[#fca311]" size={20} />
