@@ -35,6 +35,8 @@ export function Navbar() {
           </div>
           <Link
             href="/app"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95"
           >
             Start Building

@@ -35,6 +35,8 @@ export function CtaSection() {
             </p>
             <Link
               href="/app"
+              target="_blank"
+              rel="noopener noreferrer"
               className="relative overflow-hidden bg-[#fca311] text-black px-12 py-6 rounded-full text-xl md:text-2xl font-bold transition-all shadow-[0_0_60px_rgba(252,163,17,0.5)] hover:shadow-[0_0_80px_rgba(252,163,17,0.6)] hover:-translate-y-1 hover:scale-105 active:scale-95 group/btn"
             >
               <span className="relative z-10">Start Building Now</span>
