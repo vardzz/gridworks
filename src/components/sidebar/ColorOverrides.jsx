@@ -25,6 +25,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
             <input
               type="color"
               value={primaryColor || "#fafaf8"}
+              onInput={(e) => onUpdate({ primary_color: e.target.value })}
               onChange={(e) => onUpdate({ primary_color: e.target.value })}
               className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"
             />
@@ -51,6 +52,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
             <input
               type="color"
               value={accentColor || "#2d5be3"}
+              onInput={(e) => onUpdate({ accent_color: e.target.value })}
               onChange={(e) => onUpdate({ accent_color: e.target.value })}
               className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"
             />

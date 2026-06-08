@@ -56,7 +56,10 @@ export default function ScheduleGrid({ schedule, onUpdateEntry }) {
   }
 
   return (
-    <div className="schedule-canvas flex bg-[var(--gw-bg-primary)] border border-[var(--gw-border-color)] rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500">
+    <div 
+      className="schedule-canvas flex bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
+      style={{ borderColor: "var(--gw-accent, var(--gw-border-color))" }}
+    >
       <TimeColumn
         startHour={START_HOUR}
         endHour={END_HOUR}
