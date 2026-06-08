@@ -52,6 +52,7 @@ export default function CanvasScreen({
   return (
     <div 
       className="flex h-screen overflow-hidden bg-neutral-100"
+      data-theme={prefs.theme_id || "minimalist_bureau"}
       style={{ ...canvasOverrides, fontFamily: prefs.font_family || "var(--gw-font-display)" }}
     >
       {/* Main canvas area */}
@@ -65,7 +66,6 @@ export default function CanvasScreen({
         {/* Theme-scoped canvas wrapper */}
         <div
           ref={canvasRef}
-          data-theme={prefs.theme_id || "minimalist_bureau"}
           className="w-full max-w-[1200px] mx-auto"
         >
           <ScheduleGrid
