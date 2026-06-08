@@ -1,8 +1,27 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export function Navbar() {
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Hide navbar when within 600px of the bottom (where the massive footer is)
+      const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 600;
+      setIsHidden(isAtBottom);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Initial check
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-alabaster-grey transition-all">
+    <nav className={`fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-alabaster-grey transition-transform duration-500 ease-in-out ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
         <div className="font-bold text-2xl tracking-tighter text-black">
           Gridworks.
