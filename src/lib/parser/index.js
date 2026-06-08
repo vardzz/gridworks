@@ -86,11 +86,15 @@ export async function parseFile(file, options = {}) {
     const hasValidText = (timeAnchorMatches && timeAnchorMatches.length > 0) || 
                          (subjectMatches && subjectMatches.length > 0);
     
-    const isJunkBytecode = rawText.includes("") || rawText.replace(/\s+/g, "").length < 20;
+    const isJunkBytecode = rawText.includes("\ufffd") || rawText.replace(/\s+/g, "").length < 20;
 
     if (!hasValidText || isJunkBytecode || (rawText.trim().length < 50 && file.size > 100 * 1024)) {
       console.warn("Pre-flight failed: Image-based or unreadable PDF detected. Routing to OCR.");
-      rawText = await extractTextFromImage(file, onProgress);
+      try {
+        rawText = await extractTextFromImage(file, onProgress);
+      } catch (err) {
+        console.error("OCR failed on PDF:", err);
+      }
     }
   }
 
