@@ -115,7 +115,10 @@ export function normalizeEntries(rawEntries) {
     }
 
     for (let i = 0; i < N; i++) {
-      const timeStr = entry.times_raw[i];
+      let timeStr = entry.times_raw[i] || "";
+      // Strip trailing slashes, commas, or extra whitespace that would break 'pm' detection
+      timeStr = timeStr.replace(/[\/,]/g, '').trim();
+      
       const roomStr = (i < entry.rooms_raw.length) ? entry.rooms_raw[i] : (entry.rooms_raw[0] || null);
       
       const parts = timeStr.split(/\s*[-–—]\s*|\s+to\s+/i);

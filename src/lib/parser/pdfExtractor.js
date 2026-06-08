@@ -150,8 +150,25 @@ export async function extractTextFromPDF(file) {
   }
 
   // Step 2 — Column Partitioning
+  // Merge close items in header row to prevent "Course Code" becoming two columns
+  const hItems = [];
+  if (tableRows[0].items.length > 0) {
+    let currentHeader = { ...tableRows[0].items[0] };
+    for (let j = 1; j < tableRows[0].items.length; j++) {
+      const item = tableRows[0].items[j];
+      const gap = item.x - (currentHeader.x + currentHeader.width);
+      if (gap < 25) { // 25px is a safe threshold for a space between words
+        currentHeader.str += " " + item.str;
+        currentHeader.width = (item.x + item.width) - currentHeader.x;
+      } else {
+        hItems.push(currentHeader);
+        currentHeader = { ...item };
+      }
+    }
+    hItems.push(currentHeader);
+  }
+
   const columns = [];
-  const hItems = tableRows[0].items;
   for (let j = 0; j < hItems.length; j++) {
     columns.push({
       label: hItems[j].str,
