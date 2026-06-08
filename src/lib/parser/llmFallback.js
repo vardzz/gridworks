@@ -83,6 +83,7 @@ CRITICAL INSTRUCTIONS:
 2. If a course has multiple schedules/slots (e.g. Wed 4:00pm-7:00pm and Fri 2:30pm-4:30pm), you MUST split them into separate objects in the array.
 3. Normalize days to their full names (e.g., "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday").
 4. Normalize times to 24-hour HH:MM format (e.g. "04:00 PM" -> "16:00").
+5. The subject_title often wraps across multiple lines in the raw text (e.g., "Physical Activities Toward Health and" on one line and "Fitness 1" on the next). You MUST stitch these back together to capture the full 100% accurate course name.
 
 TEXT:
 ${rawText}`;
