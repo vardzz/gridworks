@@ -79,7 +79,8 @@ export function normalizeDays(rawDayInput) {
 
 function parseTime(timeStr) {
   if (!timeStr || typeof timeStr !== "string") return null;
-  const cleaned = timeStr.trim().replace(/\s+/g, "");
+  // Clean spaces and extraneous chars like slashes from the PDF cell splitting
+  const cleaned = timeStr.trim().replace(/[\/\s]+/g, "");
 
   // match "8:00am", "1:30PM"
   const match = cleaned.match(/^(\d{1,2}):(\d{2})([apAP][mM]?)$/);

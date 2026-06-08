@@ -28,7 +28,7 @@ export async function extractTextFromPDF(file) {
       allItems.push({
         str: item.str.trim(),
         x: item.transform[4],
-        y: item.transform[5],
+        y: item.transform[5] + ((pdf.numPages - i) * 2000), // Offset by page to prevent Y overlap
         width: item.width,
       });
     }
@@ -86,12 +86,31 @@ export async function extractTextFromPDF(file) {
   const headerItems = rowsByY[headerRowIdx];
   if (!headerItems || headerItems.length === 0) return { headers: [], rows: [] };
 
-  const columns = [];
-  for (let i = 0; i < headerItems.length; i++) {
+  // Merge header items that are part of the same column label (e.g. "Course" and "Code")
+  const mergedHeaders = [];
+  let currentHeader = { ...headerItems[0] };
+
+  for (let i = 1; i < headerItems.length; i++) {
     const item = headerItems[i];
-    const nextItem = headerItems[i + 1];
+    const gap = item.x - (currentHeader.x + (currentHeader.width || 0));
+    
+    // If words are very close (less than 8 units), they are part of the same header cell
+    if (gap <= 8) {
+      currentHeader.str += " " + item.str;
+      currentHeader.width = (item.x + (item.width || 0)) - currentHeader.x;
+    } else {
+      mergedHeaders.push(currentHeader);
+      currentHeader = { ...item };
+    }
+  }
+  mergedHeaders.push(currentHeader);
+
+  const columns = [];
+  for (let i = 0; i < mergedHeaders.length; i++) {
+    const item = mergedHeaders[i];
+    const nextItem = mergedHeaders[i + 1];
     columns.push({
-      label: item.str,
+      label: item.str.trim(),
       xStart: item.x,
       xEnd: nextItem ? nextItem.x : Infinity,
     });
@@ -102,7 +121,8 @@ export async function extractTextFromPDF(file) {
 
   for (let i = headerRowIdx + 1; i < rowsByY.length; i++) {
     const rowItems = rowsByY[i];
-    const rowObj = {};
+    const meanY = rowItems.reduce((sum, it) => sum + it.y, 0) / rowItems.length;
+    const rowObj = { _y: meanY };
     for (const col of columns) rowObj[col.label] = "";
 
     for (const item of rowItems) {
