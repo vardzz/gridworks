@@ -65,15 +65,46 @@ export function normalizeDays(daysRaw) {
 
 function parseTo24h(token) {
   if (!token) return null;
-  token = token.trim().toLowerCase();
-  
-  let meridiem = null;
-  if (token.endsWith("pm")) { meridiem = "pm"; token = token.slice(0, -2).trim(); }
-  else if (token.endsWith("am")) { meridiem = "am"; token = token.slice(0, -2).trim(); }
+  token = token.trim();
 
-  const parts = token.split(":");
-  let h = parseInt(parts[0], 10);
-  let m = parseInt(parts[1], 10);
+  // Already 24-hour with colon (e.g. "13:00")
+  if (/^\d{2}:\d{2}$/.test(token)) {
+    return token;
+  }
+
+  // Military time no colon (e.g. "1300")
+  if (/^\d{3,4}$/.test(token)) {
+    const h = parseInt(token.slice(0, -2), 10);
+    const m = parseInt(token.slice(-2), 10);
+    return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+  }
+
+  let lower = token.toLowerCase();
+
+  let meridiem = null;
+  if (lower.endsWith("pm") || lower.endsWith(" pm")) {
+    meridiem = "pm";
+    lower = lower.replace(/\s*pm$/, "").trim();
+  } else if (lower.endsWith("am") || lower.endsWith(" am")) {
+    meridiem = "am";
+    lower = lower.replace(/\s*am$/, "").trim();
+  } else if (lower.endsWith("p")) {
+    meridiem = "pm";
+    lower = lower.slice(0, -1).trim();
+  } else if (lower.endsWith("a")) {
+    meridiem = "am";
+    lower = lower.slice(0, -1).trim();
+  }
+
+  let h, m;
+  if (lower.includes(":")) {
+    const parts = lower.split(":");
+    h = Number(parts[0]);
+    m = Number(parts[1]);
+  } else {
+    h = parseInt(lower, 10);
+    m = 0;
+  }
   
   if (isNaN(h) || isNaN(m)) return null;
 

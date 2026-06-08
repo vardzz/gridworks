@@ -32,6 +32,7 @@ export async function parseFile(file, options = {}) {
 
   const isImage = file.type.startsWith("image/");
   let rawLines = [];
+  let isOCR = isImage;
 
   // ── 2. Image pre-check ────────────────────────────────────────────
   if (isImage && !skipPreCheck) {
@@ -57,6 +58,7 @@ export async function parseFile(file, options = {}) {
           const rawText = await extractTextFromImage(file, onProgress);
           if (rawText) {
             rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+            isOCR = true;
           }
         } catch (err) {
           console.error("OCR failed on PDF:", err);
@@ -77,7 +79,7 @@ export async function parseFile(file, options = {}) {
   console.log(`[parser] Extracted ${rawLines.length} lines`);
 
   // ── 5. Tokenize ───────────────────────────────────────────────────
-  const rawEntries = tokenize(rawLines);
+  const rawEntries = tokenize(rawLines, isOCR);
 
   // ── 6. Normalize ──────────────────────────────────────────────────
   const finalEntries = normalizeEntries(rawEntries);
