@@ -2,47 +2,56 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-white pt-32 pb-16 px-6">
-      <div className="max-w-[1400px] mx-auto border-t border-alabaster-grey pt-16">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-16 mb-24">
-          
-          <div className="max-w-xs">
-            <div className="font-bold text-3xl tracking-tighter text-black mb-6">
-              Gridworks.
-            </div>
-            <p className="text-prussian-blue-600 font-medium leading-relaxed">
-              The premium schedule builder for modern students. Private, instant, beautifully crafted.
-            </p>
-          </div>
-
-          <div className="flex gap-16 md:gap-32">
-            <div>
-              <h4 className="font-bold text-black mb-6 tracking-tight">Product</h4>
-              <ul className="space-y-4 font-medium">
-                <li><Link href="/app" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">App</Link></li>
-                <li><Link href="#features" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Features</Link></li>
-                <li><Link href="#themes" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Themes</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-black mb-6 tracking-tight">Legal</h4>
-              <ul className="space-y-4 font-medium">
-                <li><a href="#" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Privacy</a></li>
-                <li><a href="#" className="text-prussian-blue-600 hover:text-[#fca311] transition-colors">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-
-        </div>
+    <footer className="bg-white px-6 pt-32 pb-8 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto flex flex-col">
         
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm font-medium text-prussian-blue-600">
-          <p>
-            © {new Date().getFullYear()} Gridworks. All rights reserved.
-          </p>
-          <p>
-            Handcrafted in the browser.
-          </p>
+        {/* Top Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start gap-16 mb-20 md:mb-32">
+          {/* Left Hook */}
+          <div className="text-3xl md:text-4xl lg:text-5xl font-medium tracking-tight text-black max-w-sm leading-tight">
+            Experience the difference.
+          </div>
+
+          {/* Right Links */}
+          <div className="flex flex-wrap gap-16 md:gap-32">
+            <div>
+              <ul className="space-y-4 text-sm font-semibold text-black tracking-tight">
+                <li><Link href="/app" className="hover:text-[#fca311] transition-colors">App</Link></li>
+                <li><Link href="#features" className="hover:text-[#fca311] transition-colors">Features</Link></li>
+                <li><Link href="#themes" className="hover:text-[#fca311] transition-colors">Themes</Link></li>
+              </ul>
+            </div>
+            <div>
+              <ul className="space-y-4 text-sm font-semibold text-black tracking-tight">
+                <li><a href="#" className="hover:text-[#fca311] transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-[#fca311] transition-colors">Terms</a></li>
+                <li><a href="#" className="hover:text-[#fca311] transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
+
+        {/* Massive Typography */}
+        <div className="w-full mb-16 md:mb-24 flex items-center justify-center pointer-events-none select-none">
+          <h1 className="text-[16vw] xl:text-[230px] leading-[0.75] font-bold tracking-tighter text-prussian-blue -ml-[0.05em]">
+            Gridworks
+          </h1>
+        </div>
+
+        {/* Bottom Section */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 text-sm font-semibold text-prussian-blue-600 border-t border-alabaster-grey pt-8">
+          <div className="text-2xl font-bold tracking-tighter text-black w-full md:w-auto text-center md:text-left">
+            Gridworks<span className="text-[#fca311]">.</span>
+          </div>
+          
+          <div className="flex flex-wrap justify-center md:justify-end items-center gap-6 md:gap-8 text-black/60">
+             <span className="hover:text-black cursor-pointer transition-colors">© {new Date().getFullYear()} Gridworks</span>
+             <span className="hover:text-black cursor-pointer transition-colors">Handcrafted in browser</span>
+             <a href="#" className="hover:text-black transition-colors">Privacy Policy</a>
+             <a href="#" className="hover:text-black transition-colors">Terms of Service</a>
+          </div>
+        </div>
+
       </div>
     </footer>
   );
