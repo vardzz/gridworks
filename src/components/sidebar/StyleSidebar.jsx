@@ -84,7 +84,7 @@ export default function StyleSidebar({
               }}
               className="w-full text-left px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 cursor-pointer focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow flex justify-between items-center"
             >
-              {AVAILABLE_FONTS.find(f => f.id === (prefs.font_family || "Inter"))?.name || "Inter"}
+              {AVAILABLE_FONTS.find(f => f.id === (prefs.font_family || "var(--font-inter)"))?.name || "Inter"}
               <svg className="fill-current h-4 w-4 text-alabaster-grey-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
             </button>
             
@@ -101,7 +101,7 @@ export default function StyleSidebar({
                     document.getElementById("font-dropdown-menu").classList.add("hidden");
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-100 ${
-                    (prefs.font_family || "Inter") === font.id 
+                    (prefs.font_family || "var(--font-inter)") === font.id 
                       ? "text-prussian-blue-700 bg-blue-50/50" 
                       : "text-prussian-blue-200"
                   }`}

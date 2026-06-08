@@ -44,7 +44,10 @@ export default function CanvasScreen({
   const canvasOverrides = {};
   if (prefs.primary_color) canvasOverrides["--gw-bg-primary"] = prefs.primary_color;
   if (prefs.accent_color) canvasOverrides["--gw-accent"] = prefs.accent_color;
-  if (prefs.font_family) canvasOverrides["--gw-font-display"] = prefs.font_family;
+  if (prefs.font_family) {
+    canvasOverrides["--gw-font-display"] = prefs.font_family;
+    canvasOverrides["fontFamily"] = prefs.font_family;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-100">
@@ -60,8 +63,8 @@ export default function CanvasScreen({
         <div
           ref={canvasRef}
           data-theme={prefs.theme_id || "minimalist_bureau"}
-          className="w-full max-w-[1200px] mx-auto font-display"
-          style={canvasOverrides}
+          className="w-full max-w-[1200px] mx-auto"
+          style={{ ...canvasOverrides, fontFamily: prefs.font_family || "var(--gw-font-display)" }}
         >
           <ScheduleGrid
             schedule={state.schedule}
