@@ -69,28 +69,28 @@ export default function LandingPage() {
             <div className="relative z-10 w-full max-w-md h-[400px]">
               {/* Advanced Design Card */}
               <div className="absolute top-10 left-[-2rem] z-10 animate-float">
-                <div className="w-96 h-56 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4">
-                  <div className="w-16 h-2.5 bg-[#fca311] mb-5 rounded-full" />
+                <div className="w-96 h-56 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl -rotate-[3deg] transition-transform duration-1000 ease-out hover:rotate-0 hover:-translate-y-4 flex flex-col">
+                  <div className="w-16 h-2.5 bg-[#fca311] mb-5 rounded-full shrink-0" />
                   <div className="text-5xl font-bold tracking-tight text-black">Advanced<br/>Design</div>
-                  <div className="text-base font-medium text-prussian-blue-600 mt-3">1:00 PM • Studio</div>
+                  <div className="text-base font-medium text-prussian-blue-600 mt-auto">1:00 PM • Studio</div>
                 </div>
               </div>
 
               {/* CS 101 Card */}
               <div className="absolute top-[-2rem] right-0 z-20 animate-float-delayed">
-                <div className="w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-6 rounded-3xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0">
-                  <div className="w-14 h-2 bg-[#fca311] mb-4 rounded-full" />
+                <div className="w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0 flex flex-col">
+                  <div className="w-14 h-2.5 bg-[#fca311] mb-4 rounded-full shrink-0" />
                   <div className="text-4xl font-bold tracking-tight text-black">CS 101</div>
-                  <div className="text-base font-medium text-prussian-blue-600 mt-2">9:00 AM • Lecture Hall</div>
+                  <div className="text-base font-medium text-prussian-blue-600 mt-auto">9:00 AM • Lecture Hall</div>
                 </div>
               </div>
 
               {/* Physics II Card */}
               <div className="absolute top-48 right-[-1rem] z-10 animate-float-slow">
-                <div className="w-72 h-40 bg-white border border-alabaster-grey shadow-xl p-6 rounded-2xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0">
-                  <div className="w-12 h-2 bg-[#fca311] mb-4 rounded-full" />
+                <div className="w-72 h-44 bg-white border border-alabaster-grey shadow-2xl p-7 rounded-3xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0 flex flex-col">
+                  <div className="w-12 h-2.5 bg-[#fca311] mb-4 rounded-full shrink-0" />
                   <div className="text-3xl font-bold tracking-tight text-black">Physics II</div>
-                  <div className="text-sm font-medium text-prussian-blue-600 mt-2">3:30 PM • Lab 4</div>
+                  <div className="text-sm font-medium text-prussian-blue-600 mt-auto">3:30 PM • Lab 4</div>
                 </div>
               </div>
             </div>
