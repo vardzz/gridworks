@@ -5,7 +5,7 @@ export function HeroSection() {
     <section className="relative w-full px-6 py-12 lg:py-0 max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 overflow-hidden min-h-[calc(100vh-80px)]">
       
       {/* Left: Typography */}
-      <div className="w-full lg:w-1/2 flex flex-col items-start z-10 pt-4 lg:pt-0 lg:self-start lg:mt-32">
+      <div className="w-full lg:w-1/2 flex flex-col items-start z-10 pt-4 lg:pt-0 justify-center">
         <h1 className="text-6xl md:text-7xl xl:text-[7.5rem] font-bold tracking-tighter text-black leading-[0.9] mb-6 xl:mb-8 shrink-0 drop-shadow-2xl">
           Schedule.<br />
           <span className="text-prussian-blue-300 drop-shadow-md">Mastered.</span>
