@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { THEME_PRESETS } from "@/lib/themes";
+import { ProblemSection } from "@/components/landing/ProblemSection";
 
 export default function LandingPage() {
   const themes = Object.values(THEME_PRESETS);
@@ -98,14 +99,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── The Problem Section: Typographic Tension ──────────────── */}
-        <section className="py-48 px-6 bg-alabaster-grey-900 border-y border-alabaster-grey">
-          <div className="max-w-[1000px] mx-auto text-center">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black leading-tight">
-              Stop fighting with spreadsheets.<br/>
-              <span className="text-prussian-blue-600">Your time is too valuable.</span>
-            </h2>
-          </div>
-        </section>
+        <ProblemSection />
 
         {/* ── Features Section: Sticky-Scroll Editorial ─────────────── */}
         <section id="features" className="relative max-w-[1400px] mx-auto px-6 py-32 md:py-48">
