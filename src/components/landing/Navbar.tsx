@@ -23,7 +23,8 @@ export function Navbar() {
   return (
     <nav className={`fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-alabaster-grey transition-transform duration-500 ease-in-out ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
-        <div className="font-bold text-2xl tracking-tighter text-black">
+        <div className="flex items-center gap-2 font-bold text-2xl tracking-tighter text-black">
+          <img src="/gridworks-logo.png" alt="Gridworks Logo" className="h-8 w-8 object-contain" />
           Gridworks.
         </div>
         
