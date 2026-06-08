@@ -16,7 +16,7 @@ export function useExport(canvasRef) {
   const [isExporting, setIsExporting] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
 
-  const exportPNG = useCallback(async () => {
+  const exportPNG = useCallback(async (customFileName) => {
     if (!canvasRef?.current) return;
 
     setIsExporting(true);
@@ -40,7 +40,8 @@ export function useExport(canvasRef) {
 
       // Trigger download
       const link = document.createElement("a");
-      link.download = `Gridworks_Schedule_${new Date().getFullYear()}.png`;
+      const safeName = customFileName ? customFileName.replace(/[^a-z0-9_\-\s]/gi, '_') : "My_Schedule";
+      link.download = `${safeName}.png`;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
