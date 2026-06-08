@@ -8,9 +8,11 @@
  * @param {Object} props
  * @param {string|null} props.primaryColor
  * @param {string|null} props.accentColor
+ * @param {string|null} props.defaultPrimary
+ * @param {string|null} props.defaultAccent
  * @param {function} props.onUpdate — (patch) => void
  */
-export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) {
+export default function ColorOverrides({ primaryColor, accentColor, defaultPrimary, defaultAccent, onUpdate }) {
   return (
     <div className="space-y-3">
       <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
@@ -24,7 +26,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={primaryColor || "#fafaf8"}
+              value={primaryColor || defaultPrimary}
               onInput={(e) => onUpdate({ primary_color: e.target.value })}
               onChange={(e) => onUpdate({ primary_color: e.target.value })}
               className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"
@@ -51,7 +53,7 @@ export default function ColorOverrides({ primaryColor, accentColor, onUpdate }) 
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={accentColor || "#2d5be3"}
+              value={accentColor || defaultAccent}
               onInput={(e) => onUpdate({ accent_color: e.target.value })}
               onChange={(e) => onUpdate({ accent_color: e.target.value })}
               className="w-8 h-8 rounded border border-alabaster-grey cursor-pointer"

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import ThemePicker from "./ThemePicker";
 import ColorOverrides from "./ColorOverrides";
-import { AVAILABLE_FONTS } from "@/lib/themes";
+import { THEME_PRESETS, AVAILABLE_FONTS } from "@/lib/themes";
 
 /**
  * Collapsible style sidebar on the right side of the canvas.
@@ -42,6 +42,10 @@ export default function StyleSidebar({
     );
   }
 
+  const activeTheme = THEME_PRESETS[prefs.theme_id || "minimalist_bureau"];
+  const defaultPrimary = activeTheme?.previewColors[0] || "#fafaf8";
+  const defaultAccent = activeTheme?.previewColors[3] || "#2d5be3";
+
   return (
     <div className="w-72 border-l border-alabaster-grey bg-white flex flex-col overflow-hidden shrink-0">
       {/* Header */}
@@ -61,13 +65,15 @@ export default function StyleSidebar({
         {/* Theme Picker */}
         <ThemePicker
           activeThemeId={prefs.theme_id}
-          onSelect={(id) => onUpdate({ theme_id: id })}
+          onSelect={(id) => onUpdate({ theme_id: id, primary_color: null, accent_color: null, font_family: null })}
         />
 
         {/* Color Overrides */}
         <ColorOverrides
           primaryColor={prefs.primary_color}
           accentColor={prefs.accent_color}
+          defaultPrimary={defaultPrimary}
+          defaultAccent={defaultAccent}
           onUpdate={onUpdate}
         />
 
