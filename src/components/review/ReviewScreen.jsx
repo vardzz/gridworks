@@ -162,14 +162,14 @@ export default function ReviewScreen({
       <div className="flex items-center justify-between pt-2">
         <button
           onClick={onBack}
-          className="px-4 py-2.5 text-sm text-[var(--gw-text-secondary)] hover:text-[var(--gw-text-primary)] transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center bg-transparent text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all hover:bg-alabaster-grey hover:scale-105 active:scale-95 cursor-pointer"
         >
           ← Start over
         </button>
 
         <button
           onClick={handleAdd}
-          className="px-4 py-2.5 text-sm border border-[var(--gw-border-color)] rounded-lg hover:bg-[var(--gw-bg-header)] transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center bg-transparent border-2 border-black text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
         >
           + Add row
         </button>
@@ -177,7 +177,7 @@ export default function ReviewScreen({
         <button
           onClick={handleConfirm}
           disabled={entries.length === 0}
-          className="px-6 py-2.5 text-sm font-medium bg-[var(--gw-text-primary)] text-[var(--gw-bg-primary)] rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-md"
         >
           Confirm & Build Schedule
         </button>

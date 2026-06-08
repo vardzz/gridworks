@@ -116,13 +116,13 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
             <div className="flex gap-3">
               <button
                 onClick={handleConsentApprove}
-                className="flex-1 py-2.5 text-sm font-medium bg-prussian-blue text-white rounded-lg hover:bg-prussian-blue-600 transition-colors cursor-pointer"
+                className="flex-1 inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer"
               >
                 Allow
               </button>
               <button
                 onClick={handleConsentDecline}
-                className="flex-1 py-2.5 text-sm font-medium border border-alabaster-grey-400 rounded-lg hover:bg-alabaster-grey-900 transition-colors cursor-pointer"
+                className="flex-1 inline-flex items-center justify-center bg-transparent border-2 border-black text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
               >
                 Skip AI check
               </button>
@@ -220,7 +220,7 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
       {!isLoading && (
         <button
           onClick={onManualEntry}
-          className="mt-6 text-sm text-alabaster-grey-300 hover:text-prussian-blue-700 transition-colors cursor-pointer underline"
+          className="mt-6 inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer"
         >
           Enter your schedule manually
         </button>

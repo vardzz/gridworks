@@ -116,13 +116,13 @@ export default function StyleSidebar({
       <div className="p-4 border-t border-alabaster-grey space-y-2">
         <button
           onClick={onExportPNG}
-          className="w-full py-2.5 text-sm font-medium bg-prussian-blue text-white rounded-lg hover:bg-prussian-blue-600 transition-colors cursor-pointer"
+          className="w-full inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer"
         >
           Export PNG (HD)
         </button>
         <button
           onClick={onExportPDF}
-          className="w-full py-2.5 text-sm font-medium border border-alabaster-grey-400 rounded-lg hover:bg-alabaster-grey-900 transition-colors cursor-pointer"
+          className="w-full inline-flex items-center justify-center bg-transparent border-2 border-black text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
         >
           Export PDF
         </button>
