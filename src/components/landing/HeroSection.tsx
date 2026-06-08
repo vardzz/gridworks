@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function HeroSection() {
   return (
-    <section className="relative w-full px-6 py-12 lg:py-0 max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 overflow-hidden min-h-[calc(100vh-80px)]">
+    <section className="relative w-full px-8 md:px-16 lg:px-24 xl:px-32 py-12 lg:py-0 max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16 overflow-hidden min-h-[calc(100vh-80px)]">
       
       {/* Left: Typography */}
       <div className="w-full lg:w-1/2 flex flex-col items-start z-10 pt-4 lg:pt-0 justify-center">
@@ -47,7 +47,7 @@ export function HeroSection() {
 
           {/* CS 101 Card */}
           <div className="absolute top-[-2rem] right-0 z-20 animate-float-delayed">
-            <div className="w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl rotate-[6deg] translate-x-12 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0 flex flex-col">
+            <div className="w-80 h-48 bg-white border border-alabaster-grey shadow-2xl p-8 rounded-3xl rotate-[6deg] translate-x-4 translate-y-12 transition-transform duration-1000 ease-out hover:rotate-0 hover:translate-x-0 flex flex-col">
               <div className="w-14 h-2.5 bg-[#fca311] mb-4 rounded-full shrink-0" />
               <div className="text-5xl font-bold tracking-tight text-black">CS 101</div>
               <div className="text-base font-medium text-prussian-blue-600 mt-auto">9:00 AM • Lecture Hall</div>
@@ -55,7 +55,7 @@ export function HeroSection() {
           </div>
 
           {/* Physics II Card */}
-          <div className="absolute top-48 right-[-1rem] z-10 animate-float-slow">
+          <div className="absolute top-48 right-0 z-10 animate-float-slow">
             <div className="w-72 h-44 bg-white border border-alabaster-grey shadow-2xl p-7 rounded-3xl rotate-[4deg] translate-y-8 transition-transform duration-1000 ease-out hover:rotate-0 flex flex-col">
               <div className="w-12 h-2.5 bg-[#fca311] mb-4 rounded-full shrink-0" />
               <div className="text-5xl font-bold tracking-tight text-black">Physics II</div>
