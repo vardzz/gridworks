@@ -177,7 +177,7 @@ export default function AppPage() {
 
         {screen === "review" && (
           <ReviewScreen
-            parsedEntries={parseResult?.entries || []}
+            parsedEntries={state.schedule?.length > 0 ? state.schedule : (parseResult?.entries || [])}
             parseMetadata={
               parseResult
                 ? {

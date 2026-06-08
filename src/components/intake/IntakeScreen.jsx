@@ -94,7 +94,7 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
     unsupported_type: "Gridworks only supports PDF, PNG, and JPEG files.",
     file_too_large: "File too large (max 10 MB). Try a compressed version.",
     not_a_schedule:
-      "This doesn't appear to be a class schedule. Try a different file, or enter your schedule manually.",
+      "Unreadable Layout Format Detected. For a flawless grid, upload a clean registration PDF or crisp schedule screenshot, or select [Enter Manually] to build your layout from scratch.",
     extraction_failed:
       "We couldn't read this file. Try a clearer image, or enter your schedule manually.",
   };

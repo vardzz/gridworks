@@ -24,8 +24,12 @@ const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
  * @param {function} props.onUpdateEntry — (id, patch) => void
  */
 export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
-  // Determine which days to show based on entries
-  const hasWeekend = schedule.some(
+  // Safety Clamps: filter out courses missing essential geometry data
+  const validCourses = schedule.filter(e => e.start_time && e.end_time && e.days?.length > 0);
+  const partialCourses = schedule.filter(e => !e.start_time || !e.end_time || !e.days || e.days.length === 0);
+
+  // Determine which days to show based on valid entries
+  const hasWeekend = validCourses.some(
     (e) => e.days?.includes("Saturday") || e.days?.includes("Sunday")
   );
   const visibleDays = hasWeekend ? ALL_DAYS : WEEKDAYS;
@@ -56,83 +60,112 @@ export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
   }
 
   return (
-    <div 
-      className="schedule-canvas flex min-w-[700px] bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
-      style={{ borderColor: "var(--gw-accent, var(--gw-border-color))" }}
-    >
-      {/* Export Watermark (Tiled Background) */}
-      <div 
-        className={`absolute inset-0 z-0 pointer-events-none ${isExporting ? 'opacity-[0.03]' : 'opacity-0'}`}
-        style={{ 
-          backgroundImage: "url('/gridworks-logo.png')", 
-          backgroundRepeat: "repeat", 
-          backgroundSize: "100px 100px",
-          backgroundPosition: "center"
-        }}
-      />
-
-      <TimeColumn
-        startHour={START_HOUR}
-        endHour={END_HOUR}
-        slotHeight={SLOT_HEIGHT}
-        paddingTop={GRID_PT}
-      />
-
-      {/* Day columns */}
-      {visibleDays.map((day) => {
-        const dayEntries = schedule.filter((e) => e.days?.includes(day));
-        const layoutEntries = computeOverlaps(dayEntries);
-
-        return (
-          <div
-            key={day}
-            className="flex-1 relative border-l border-[var(--gw-border-color)] group/col hover:bg-[var(--gw-text-primary)]/[0.03] transition-colors duration-300"
-          >
-            {/* Day header */}
-            <div className="h-14 flex items-center justify-center border-b border-[var(--gw-border-color)] bg-[var(--gw-bg-header)]/80 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500">
-              <span className="text-[11px] font-bold text-[var(--gw-text-primary)] uppercase tracking-widest">
-                {day.substring(0, 3)}
-              </span>
-            </div>
-
-            {/* Grid area */}
-            <div className="relative" style={{ height: `${GRID_HEIGHT + GRID_PT + GRID_PB}px` }}>
-              {gridLines}
-
-              {layoutEntries.map((entry, idx) => {
-                const [sH, sM] = (entry.start_time || "07:00")
-                  .split(":")
-                  .map(Number);
-                const [eH, eM] = (entry.end_time || "08:00")
-                  .split(":")
-                  .map(Number);
-
-                const top =
-                  ((sH - START_HOUR) * 60 + sM) / 30 * SLOT_HEIGHT;
-                const height =
-                  ((eH * 60 + eM) - (sH * 60 + sM)) / 30 * SLOT_HEIGHT;
-
-                return (
-                  <ScheduleCell
-                    key={`${entry.id}-${day}`}
-                    entry={entry}
-                    style={{
-                      top: `${Math.max(0, top) + GRID_PT}px`,
-                      height: `${Math.max(SLOT_HEIGHT, height)}px`,
-                      width: entry._layoutWidth || "calc(100% - 4px)",
-                      left: entry._layoutLeft || "2px",
-                    }}
-                    colorIndex={schedule.indexOf(
-                      schedule.find((s) => s.id === entry.id)
-                    )}
-                    onUpdate={(patch) => onUpdateEntry(entry.id, patch)}
-                  />
-                );
-              })}
-            </div>
+    <div className="flex flex-col gap-6">
+      {/* UI Shelf Block for Unassigned Times */}
+      {partialCourses.length > 0 && !isExporting && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
+          <h3 className="text-amber-800 font-bold text-sm mb-3 uppercase tracking-wider">
+            Items Requiring Attention
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            {partialCourses.map(course => (
+              <div 
+                key={course.id} 
+                className="bg-white border-2 border-amber-300 rounded-lg p-3 shadow-sm min-w-[220px] hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => onUpdateEntry(course.id, {})} // Trigger an update or just act as a visual hint
+              >
+                <h4 className="font-bold text-prussian-blue-700 text-sm">
+                  {course.subject_code || "Unknown Subject"}
+                </h4>
+                <p className="text-xs text-amber-600 font-bold mt-1.5 flex flex-col gap-0.5">
+                  {!course.days?.length && <span>[MISSING DAYS]</span>}
+                  {(!course.start_time || !course.end_time) && <span>[MISSING TIME]</span>}
+                  <span className="text-amber-700/70 font-medium mt-1">TAP TO ADJUST IN SIDEBAR</span>
+                </p>
+              </div>
+            ))}
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      <div 
+        className="schedule-canvas flex min-w-[700px] bg-[var(--gw-bg-primary)] border-2 rounded-2xl overflow-hidden shadow-2xl relative transition-colors duration-500"
+        style={{ borderColor: "var(--gw-accent, var(--gw-border-color))" }}
+      >
+        {/* Export Watermark (Tiled Background) */}
+        <div 
+          className={`absolute inset-0 z-0 pointer-events-none ${isExporting ? 'opacity-[0.03]' : 'opacity-0'}`}
+          style={{ 
+            backgroundImage: "url('/gridworks-logo.png')", 
+            backgroundRepeat: "repeat", 
+            backgroundSize: "100px 100px",
+            backgroundPosition: "center"
+          }}
+        />
+
+        <TimeColumn
+          startHour={START_HOUR}
+          endHour={END_HOUR}
+          slotHeight={SLOT_HEIGHT}
+          paddingTop={GRID_PT}
+        />
+
+        {/* Day columns */}
+        {visibleDays.map((day) => {
+          const dayEntries = validCourses.filter((e) => e.days?.includes(day));
+          const layoutEntries = computeOverlaps(dayEntries);
+
+          return (
+            <div
+              key={day}
+              className="flex-1 relative border-l border-[var(--gw-border-color)] group/col hover:bg-[var(--gw-text-primary)]/[0.03] transition-colors duration-300"
+            >
+              {/* Day header */}
+              <div className="h-14 flex items-center justify-center border-b border-[var(--gw-border-color)] bg-[var(--gw-bg-header)]/80 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500">
+                <span className="text-[11px] font-bold text-[var(--gw-text-primary)] uppercase tracking-widest">
+                  {day.substring(0, 3)}
+                </span>
+              </div>
+
+              {/* Grid area */}
+              <div className="relative" style={{ height: `${GRID_HEIGHT + GRID_PT + GRID_PB}px` }}>
+                {gridLines}
+
+                {layoutEntries.map((entry, idx) => {
+                  const [sH, sM] = (entry.start_time || "07:00")
+                    .split(":")
+                    .map(Number);
+                  const [eH, eM] = (entry.end_time || "08:00")
+                    .split(":")
+                    .map(Number);
+
+                  const top =
+                    ((sH - START_HOUR) * 60 + sM) / 30 * SLOT_HEIGHT;
+                  const height =
+                    ((eH * 60 + eM) - (sH * 60 + sM)) / 30 * SLOT_HEIGHT;
+
+                  return (
+                    <ScheduleCell
+                      key={`${entry.id}-${day}`}
+                      entry={entry}
+                      style={{
+                        top: `${Math.max(0, top) + GRID_PT}px`,
+                        height: `${Math.max(SLOT_HEIGHT, height)}px`,
+                        width: entry._layoutWidth || "calc(100% - 4px)",
+                        left: entry._layoutLeft || "2px",
+                      }}
+                      colorIndex={schedule.indexOf(
+                        schedule.find((s) => s.id === entry.id)
+                      )}
+                      onUpdate={(patch) => onUpdateEntry(entry.id, patch)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

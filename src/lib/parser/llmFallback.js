@@ -15,7 +15,7 @@ const API_URL =
  */
 export async function preCheckIsSchedule(file) {
   const key = process.env.NEXT_PUBLIC_GEMINI_KEY;
-  if (!key) return { isSchedule: true };
+  if (!key) return { isSchedule: true, confidence: 1.0 };
 
   try {
     const arrayBuffer = await file.arrayBuffer();
@@ -40,7 +40,7 @@ export async function preCheckIsSchedule(file) {
                 },
               },
               {
-                text: 'Does this image contain a university class schedule or course registration form? Reply with ONLY one of these two JSON objects, nothing else: {"isSchedule": true} or {"isSchedule": false}',
+                text: 'Does this image contain a university class schedule or course registration form? Reply with ONLY a JSON object containing "isSchedule" (boolean) and "confidence" (number 0-1), nothing else. Example: {"isSchedule": true, "confidence": 0.95}',
               },
             ],
           },
@@ -55,7 +55,7 @@ export async function preCheckIsSchedule(file) {
     return JSON.parse(cleaned);
   } catch {
     // Safe default — let the user proceed
-    return { isSchedule: true };
+    return { isSchedule: true, confidence: 1.0 };
   }
 }
 

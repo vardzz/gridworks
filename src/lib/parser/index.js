@@ -58,7 +58,7 @@ export async function parseFile(file, options = {}) {
   // ── 2. Image pre-check ────────────────────────────────────────────
   if (isImage && !skipPreCheck) {
     const check = await preCheckIsSchedule(file);
-    if (!check.isSchedule) {
+    if (!check.isSchedule || (check.confidence !== undefined && check.confidence < 0.75)) {
       return {
         entries: [],
         confidence: 0,
@@ -79,8 +79,19 @@ export async function parseFile(file, options = {}) {
   }
 
   // ── 4. Empty PDF detection — fallback to OCR ──────────────────────
-  if (!isImage && rawText.trim().length < 50 && file.size > 100 * 1024) {
-    rawText = await extractTextFromImage(file, onProgress);
+  if (!isImage) {
+    // Heuristic Vector Validation: Check for actual valid anchors
+    const timeAnchorMatches = rawText.match(/((?:1[0-2]|0?[1-9]):[0-5][0-9])/g);
+    const subjectMatches = rawText.match(/\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/g);
+    const hasValidText = (timeAnchorMatches && timeAnchorMatches.length > 0) || 
+                         (subjectMatches && subjectMatches.length > 0);
+    
+    const isJunkBytecode = rawText.includes("") || rawText.replace(/\s+/g, "").length < 20;
+
+    if (!hasValidText || isJunkBytecode || (rawText.trim().length < 50 && file.size > 100 * 1024)) {
+      console.warn("Pre-flight failed: Image-based or unreadable PDF detected. Routing to OCR.");
+      rawText = await extractTextFromImage(file, onProgress);
+    }
   }
 
   // Check for total extraction failure

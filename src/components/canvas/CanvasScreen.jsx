@@ -110,6 +110,7 @@ export default function CanvasScreen({
           onUpdate={updatePreferences}
           onExportPNG={() => setShowExport(true)}
           onExportPDF={() => setShowExport(true)}
+          onEditSchedule={() => setScreen("review")}
           onReUpload={() => setScreen("intake")}
           onReset={resetState}
         />
@@ -159,6 +160,7 @@ export default function CanvasScreen({
               onUpdate={updatePreferences}
               onExportPNG={() => { closeDrawer(); setShowExport(true); }}
               onExportPDF={() => { closeDrawer(); setShowExport(true); }}
+              onEditSchedule={() => { closeDrawer(); setScreen("review"); }}
               onReUpload={() => setScreen("intake")}
               onReset={resetState}
               isMobileDrawer

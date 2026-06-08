@@ -3,156 +3,94 @@ import { normalizeDays, normalizeTime } from "./normalizer";
 
 // ── Regex patterns from PRD §9.1 ──────────────────────────────────────
 const SUBJECT_CODE_RE = /\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/g;
-const TIME_RANGE_RE =
-  /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/g;
-const DAYS_RE =
-  /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
-const ROOM_RE = /\b[A-Z]+-?\d{3,4}[A-Z]?\b/g;
+const TIME_RANGE_RE = /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/gi;
+const DAYS_RE = /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi;
+const ROOM_RE = /\b(?:COMLAB\s*\d|FIELD\d+|VRCCE-\d+|[A-Z]+-?\d{1,4}[A-Z]?)\b/gi;
 
 /**
- * Splits raw text into lines, groups lines into entry blocks,
- * and extracts fields using regex patterns.
- *
- * A new block starts when a subject code pattern is detected on a line.
+ * Parses raw text into schedule entries using Token Clustering Maps 
+ * and Micro-Segment Parsing.
  *
  * @param {string} rawText — raw extracted text from PDF or OCR
- * @returns {Array<Object>} — array of partial entry objects (no ids yet)
+ * @returns {Array<Object>} — array of partial entry objects
  */
 export function tokenize(rawText) {
   if (!rawText || typeof rawText !== "string") return [];
 
-  const lines = rawText.split(/\n/).filter((l) => l.trim());
-  const blocks = [];
-  let currentBlock = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    const codeIndex = trimmed.search(SUBJECT_CODE_RE);
-    const hasSubjectCode = codeIndex >= 0 && codeIndex < 6;
-    SUBJECT_CODE_RE.lastIndex = 0; // Reset regex state
-
-    if (hasSubjectCode && currentBlock.length > 0) {
-      blocks.push(currentBlock.join(" "));
-      currentBlock = [line];
-    } else if (hasSubjectCode) {
-      currentBlock = [line];
-    } else {
-      currentBlock.push(line);
-    }
+  // 1. Identify all anchors (Subject Codes)
+  const subjects = [];
+  let match;
+  SUBJECT_CODE_RE.lastIndex = 0;
+  while ((match = SUBJECT_CODE_RE.exec(rawText)) !== null) {
+    subjects.push({ code: match[0], index: match.index });
   }
 
-  if (currentBlock.length > 0) {
-    blocks.push(currentBlock.join(" "));
-  }
+  if (subjects.length === 0) return [];
 
-  // Parse each block into a partial entry
-  const entries = [];
+  // 2. Proximity Indexing
+  const clusters = subjects.map((subj, i) => {
+    const nextIndex = subjects[i + 1] ? subjects[i + 1].index : rawText.length;
+    const block = rawText.substring(subj.index, nextIndex);
+    return parseSubjectBlock(subj.code, block);
+  });
 
-  for (const block of blocks) {
-    const entry = extractFieldsFromBlock(block);
-    if (entry) {
-      if (Array.isArray(entry)) {
-        entries.push(...entry);
-      } else {
-        entries.push(entry);
-      }
-    }
-  }
-
-  return entries;
+  return clusters.flat().filter(Boolean);
 }
 
-/**
- * Extracts individual fields from a text block using regex patterns.
- */
-function extractFieldsFromBlock(block) {
-  // Subject code
-  const codeMatch = block.match(/\b[A-Z]{2,5}\s?\d{1,4}[A-Z]?\b/);
-  const subject_code = codeMatch ? codeMatch[0].replace(/\s+/g, "") : null;
+function parseSubjectBlock(subject_code, block) {
+  const segments = [];
+  let match;
+  
+  const professor = extractProfessor(block);
+  const subject_title = extractTitle(block, subject_code);
+  const cleanCode = subject_code.replace(/\s+/g, "");
 
-  // Create a copy of the block without the subject code to avoid matching it as room/etc.
-  let remainingBlock = block;
-  if (codeMatch) {
-    remainingBlock = block.replace(codeMatch[0], "");
+  // 3. Sequential Pairing & Micro-Segment Parsing
+  TIME_RANGE_RE.lastIndex = 0;
+  while ((match = TIME_RANGE_RE.exec(block)) !== null) {
+    const timeIndex = match.index;
+    
+    // Create bounding window (40 chars before, 60 after)
+    const windowStart = Math.max(0, timeIndex - 40);
+    const windowEnd = Math.min(block.length, timeIndex + match[0].length + 60);
+    const localWindow = block.substring(windowStart, windowEnd);
+    
+    // Local Matching strictly within window
+    const roomMatch = localWindow.match(ROOM_RE);
+    const room = roomMatch ? roomMatch[0] : null;
+    
+    const dayMatches = localWindow.match(DAYS_RE);
+    const days = dayMatches ? normalizeDays(dayMatches) : [];
+    
+    segments.push({
+      subject_code: cleanCode,
+      subject_title,
+      professor,
+      room,
+      days,
+      start_time: normalizeTime(match[1]),
+      end_time: normalizeTime(match[2]),
+      color_override: null
+    });
   }
 
-  // Find all time ranges in this block
-  const timeMatches = [...remainingBlock.matchAll(
-    /(\d{1,2}:\d{2}\s*[APap][Mm]?)\s*[-–—]\s*(\d{1,2}:\d{2}\s*[APap][Mm]?)/gi
-  )];
-
-  if (timeMatches.length === 0) {
-    if (!subject_code) return null;
-    return {
-      subject_code,
-      subject_title: extractTitle(block, subject_code),
-      professor: extractProfessor(remainingBlock),
-      room: null,
-      days: [],
+  // If no time matches, bind loose metadata to the subject
+  if (segments.length === 0) {
+    const roomMatch = block.match(ROOM_RE);
+    const dayMatches = block.match(DAYS_RE);
+    return [{
+      subject_code: cleanCode,
+      subject_title,
+      professor,
+      room: roomMatch ? roomMatch[0] : null,
+      days: dayMatches ? normalizeDays(dayMatches) : [],
       start_time: null,
       end_time: null,
-      color_override: null,
-    };
+      color_override: null
+    }];
   }
 
-  // Find all room matches
-  const roomMatches = [...remainingBlock.matchAll(
-    /\b(?:COMLAB\s*\d|FIELD\d+|VRCCE-\d+|[A-Z]+-?\d{1,4}[A-Z]?)\b/gi
-  )];
-  const rooms = roomMatches.map((m) => m[0]);
-
-  // Extract days from the block segment BEFORE the first time match (avoids section codes like 1CS-F)
-  const firstTimeIndex = timeMatches[0].index;
-  const daysBlock = remainingBlock.substring(0, firstTimeIndex);
-
-  const dayMatches = daysBlock.match(
-    /\b(MWF|TTh|T\/Th|MW|MTh|WTh|TR|MTWTHF|MTWTF|MTWRF|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Th|Sa|Su|[MTWFS])\b/gi
-  );
-  const days = dayMatches ? normalizeDays(dayMatches) : [];
-
-  const professor = extractProfessor(remainingBlock);
-  const subject_title = extractTitle(block, subject_code);
-
-  // If multiple time slots exist, split them into separate schedule entries
-  if (timeMatches.length > 1) {
-    const splitEntries = [];
-    for (let i = 0; i < timeMatches.length; i++) {
-      const start_time = normalizeTime(timeMatches[i][1]);
-      const end_time = normalizeTime(timeMatches[i][2]);
-
-      // Pair day i with time i if available, otherwise reuse the first day/room
-      const slotDays = days.length > i ? [days[i]] : (days.length > 0 ? [days[0]] : []);
-      const slotRoom = rooms.length > i ? rooms[i] : (rooms.length > 0 ? rooms[0] : null);
-
-      splitEntries.push({
-        subject_code,
-        subject_title,
-        professor,
-        room: slotRoom,
-        days: slotDays,
-        start_time,
-        end_time,
-        color_override: null,
-      });
-    }
-    return splitEntries;
-  }
-
-  // Single time range case
-  const start_time = normalizeTime(timeMatches[0][1]);
-  const end_time = normalizeTime(timeMatches[0][2]);
-  const room = rooms.length > 0 ? rooms[0] : null;
-
-  return {
-    subject_code,
-    subject_title,
-    professor,
-    room,
-    days,
-    start_time,
-    end_time,
-    color_override: null,
-  };
+  return segments;
 }
 
 function extractTitle(block, subject_code) {

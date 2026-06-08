@@ -27,6 +27,7 @@ export default function StyleSidebar({
   onUpdate,
   onExportPNG,
   onExportPDF,
+  onEditSchedule,
   onReUpload,
   onReset,
   isMobileDrawer = false,
@@ -118,6 +119,12 @@ export default function StyleSidebar({
 
         {/* Bottom toolbar */}
         <div className="p-4 border-t border-alabaster-grey space-y-2">
+          <button
+            onClick={onEditSchedule}
+            className="w-full inline-flex items-center justify-center bg-transparent border-2 border-prussian-blue-200 text-prussian-blue-200 px-6 py-3 rounded-full text-base font-bold transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer min-h-[48px] mb-2"
+          >
+            Edit Schedule Details
+          </button>
           <button
             onClick={onExportPNG}
             className="w-full inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-3 rounded-full text-base font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer min-h-[48px]"
@@ -261,6 +268,12 @@ export default function StyleSidebar({
 
       {/* Bottom toolbar */}
       <div className="p-4 border-t border-alabaster-grey space-y-2">
+        <button
+          onClick={onEditSchedule}
+          className="w-full inline-flex items-center justify-center bg-transparent border-2 border-prussian-blue-200 text-prussian-blue-200 px-6 py-3 rounded-full text-base font-bold transition-all shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          Edit Schedule Details
+        </button>
         <button
           onClick={onExportPNG}
           className="w-full inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-3 rounded-full text-base font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer"
