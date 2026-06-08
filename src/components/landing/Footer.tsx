@@ -1,9 +1,20 @@
 import Link from "next/link";
+import { Hexagon, Triangle, Circle, Square, Box } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-white px-6 pt-32 pb-8 overflow-hidden">
-      <div className="max-w-[1400px] mx-auto flex flex-col">
+    <footer className="relative bg-white px-6 pt-32 pb-8 overflow-hidden">
+      
+      {/* Floating Background Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-[0.15]">
+        <div className="absolute top-[20%] left-[10%] text-prussian-blue-600 animate-drift-1"><Hexagon size={120} strokeWidth={1} /></div>
+        <div className="absolute top-[40%] right-[15%] text-[#fca311] animate-drift-2"><Triangle size={90} strokeWidth={1} /></div>
+        <div className="absolute bottom-[30%] left-[25%] text-prussian-blue-300 animate-drift-3"><Circle size={100} strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] right-[30%] text-alabaster-grey-900 animate-drift-1" style={{animationDelay: '-5s'}}><Square size={140} strokeWidth={1} /></div>
+        <div className="absolute top-[10%] right-[5%] text-prussian-blue-600 animate-drift-2" style={{animationDelay: '-8s'}}><Box size={80} strokeWidth={1} /></div>
+      </div>
+
+      <div className="relative max-w-[1400px] mx-auto flex flex-col z-10">
         
         {/* Top Section */}
         <div className="flex flex-col md:flex-row justify-between items-start gap-16 mb-20 md:mb-32">

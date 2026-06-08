@@ -1,4 +1,5 @@
 import { THEME_PRESETS } from "@/lib/themes";
+import { Palette, Paintbrush, Droplet, Sparkles, Brush } from "lucide-react";
 
 function getContrastTextColor(hexColor: string) {
   let hex = hexColor.replace("#", "");
@@ -16,8 +17,18 @@ export function ThemesSection() {
   const themes = Object.values(THEME_PRESETS);
 
   return (
-    <section id="themes" className="py-32 md:py-48 px-6 bg-white border-t border-alabaster-grey">
-      <div className="max-w-[1400px] mx-auto">
+    <section id="themes" className="relative py-32 md:py-48 px-6 bg-white border-t border-alabaster-grey overflow-hidden">
+      
+      {/* Floating Background Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-30">
+        <div className="absolute top-[10%] left-[10%] text-[#fca311] animate-drift-1"><Palette size={80} strokeWidth={1} /></div>
+        <div className="absolute top-[30%] right-[10%] text-prussian-blue-300 animate-drift-2"><Paintbrush size={90} strokeWidth={1} /></div>
+        <div className="absolute bottom-[20%] left-[20%] text-alabaster-grey-900 animate-drift-3"><Droplet size={100} strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] right-[20%] text-[#fca311] animate-drift-1" style={{animationDelay: '-3s'}}><Sparkles size={70} strokeWidth={1.5} /></div>
+        <div className="absolute top-[50%] left-[5%] text-prussian-blue-600 animate-drift-2" style={{animationDelay: '-6s'}}><Brush size={85} strokeWidth={1} /></div>
+      </div>
+
+      <div className="relative max-w-[1400px] mx-auto z-10">
         <div className="mb-24 flex flex-col md:flex-row md:items-end justify-between gap-10">
           <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-black leading-[0.9]">
             Themes.

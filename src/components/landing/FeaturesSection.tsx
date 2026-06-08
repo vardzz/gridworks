@@ -1,9 +1,19 @@
-import { UploadCloud, FileText, CheckCircle2, ChevronRight, Settings, Grid as GridIcon, Download } from "lucide-react";
+import { UploadCloud, FileText, CheckCircle2, ChevronRight, Settings, Grid as GridIcon, Download, Zap, FileCheck, Rocket } from "lucide-react";
 
 export function FeaturesSection() {
   return (
     <section id="features" className="relative max-w-[1400px] mx-auto px-6 py-32 md:py-48">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-24 relative items-start">
+      
+      {/* Floating Background Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-30">
+        <div className="absolute top-[10%] left-[5%] text-prussian-blue-300 animate-drift-1"><Zap size={80} strokeWidth={1} /></div>
+        <div className="absolute top-[40%] right-[5%] text-[#fca311] animate-drift-2"><Settings size={100} strokeWidth={1} /></div>
+        <div className="absolute bottom-[20%] left-[10%] text-alabaster-grey-900 animate-drift-3"><GridIcon size={120} strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] right-[15%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-2s'}}><FileCheck size={70} strokeWidth={1.5} /></div>
+        <div className="absolute top-[60%] left-[15%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-16 md:gap-24 relative items-start z-10">
         
         {/* Sticky Typography Column */}
         <div className="md:col-span-5 md:sticky md:top-40">

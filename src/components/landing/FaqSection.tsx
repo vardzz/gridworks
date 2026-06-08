@@ -1,10 +1,20 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle, MessageSquare, Info, Search, Lightbulb } from "lucide-react";
 import Link from "next/link";
 
 export function FaqSection() {
   return (
-    <section id="faq" className="py-32 md:py-48 px-6 bg-white">
-      <div className="max-w-[800px] mx-auto">
+    <section id="faq" className="relative py-32 md:py-48 px-6 bg-white overflow-hidden">
+      
+      {/* Floating Background Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-30">
+        <div className="absolute top-[15%] left-[8%] text-[#fca311] animate-drift-1"><HelpCircle size={80} strokeWidth={1} /></div>
+        <div className="absolute top-[35%] right-[8%] text-prussian-blue-300 animate-drift-2"><MessageSquare size={90} strokeWidth={1} /></div>
+        <div className="absolute bottom-[25%] left-[12%] text-alabaster-grey-900 animate-drift-3"><Info size={110} strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] right-[15%] text-prussian-blue-600 animate-drift-1" style={{animationDelay: '-4s'}}><Search size={75} strokeWidth={1.5} /></div>
+        <div className="absolute top-[50%] left-[8%] text-[#fca311] animate-drift-2" style={{animationDelay: '-7s'}}><Lightbulb size={60} strokeWidth={1.5} /></div>
+      </div>
+
+      <div className="relative max-w-[800px] mx-auto z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-4">
             Frequently Asked Questions
