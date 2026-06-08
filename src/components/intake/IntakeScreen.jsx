@@ -159,7 +159,6 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
         onClick={() => fileInputRef.current?.click()}
       >
         <div className={`w-full h-full bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden transition-all duration-300 ${isDragging ? "scale-[1.02] shadow-2xl" : ""} ${isLoading ? "pointer-events-none opacity-70" : ""}`}>
-          <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#fca311] to-prussian-blue-300 transition-opacity duration-700 ${isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} />
           
           <div className={`border-2 border-dashed rounded-xl h-full flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500 ${isDragging ? "border-prussian-blue-300 bg-prussian-blue/5" : "border-alabaster-grey-900 bg-alabaster-grey/20 group-hover:border-prussian-blue-300"}`}>
             
