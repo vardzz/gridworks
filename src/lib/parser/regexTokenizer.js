@@ -62,9 +62,8 @@ const MULTI_SLOT_SEPARATORS = [
   "; "      // BCH 501; COMLAB 3
 ];
 
-function isHeaderNoiseLine(cells) {
-  const firstCell = cells[0].trim();
-  return HEADER_NOISE_PATTERNS.some(pattern => pattern.test(firstCell));
+function isHeaderNoiseString(firstCellText) {
+  return HEADER_NOISE_PATTERNS.some(pattern => pattern.test(firstCellText));
 }
 
 function isValidCourseCode(str) {
@@ -114,23 +113,18 @@ function splitByDelimiter(line, delimiter) {
 }
 
 // Layer 5: Continuation Row Detection
-function isContinuationRow(cells, fieldIndexMap) {
-  const codeIndex = fieldIndexMap.course_code;
-
-  if (codeIndex !== undefined && codeIndex !== null) {
-    if (cells[codeIndex] && cells[codeIndex].trim() === "") {
-      return true;
-    }
-  }
-
-  if (cells[0].trim() === "") {
+function isContinuationRow(cells, firstCellText) {
+  if (cells.course_code !== undefined && cells.course_code === "") {
     return true;
   }
 
-  if (!isValidCourseCode(cells[0])) {
-    const nonEmpty = [fieldIndexMap.time, fieldIndexMap.room]
-      .filter(i => i !== undefined && i !== null && cells[i] && cells[i].trim() !== "");
-    if (nonEmpty.length > 0) {
+  if (firstCellText === "") {
+    return true;
+  }
+
+  if (!isValidCourseCode(firstCellText)) {
+    const hasTimeOrRoom = (cells.time && cells.time !== "") || (cells.room && cells.room !== "");
+    if (hasTimeOrRoom) {
       return true;
     }
   }
@@ -141,8 +135,8 @@ function isContinuationRow(cells, fieldIndexMap) {
 // Layer 6: Fallback Header Detection
 const REQUIRED_MINIMUM = ["course_code", "day", "time"];
 
-function validateFieldMap(fieldIndexMap) {
-  const missing = REQUIRED_MINIMUM.filter(f => fieldIndexMap[f] === undefined || fieldIndexMap[f] === null);
+function validateFieldBounds(fieldBounds) {
+  const missing = REQUIRED_MINIMUM.filter(f => !fieldBounds[f]);
   if (missing.length > 0) {
     throw new Error("MISSING_REQUIRED_COLUMNS: " + missing.join(", "));
   }
@@ -204,36 +198,62 @@ export function tokenize(rawLines, isOCR = false) {
 
   // Re-fetch header line after optional OCR normalization
   const normHeaderLine = rawLines[headerIndex];
-  const headerCells = splitByDelimiter(normHeaderLine, delimiter);
+  
+  // Spatial Heuristic: Extract spatial coordinates of headers
+  let lookahead = "\\s{2,}|\\t";
+  if (delimiter === "SINGLE_SPACE") lookahead = "\\s+|\\t";
+  
+  const headers = [];
+  const regex = new RegExp(`(\\S(?:.*?\\S)?)(?=${lookahead}|$)`, "g");
+  let match;
+  while ((match = regex.exec(normHeaderLine)) !== null) {
+    headers.push({
+      text: match[1],
+      start: match.index,
+      end: match.index + match[1].length
+    });
+    if (match.index === regex.lastIndex) regex.lastIndex++;
+  }
 
-  // Step 3 — Build the Column Index Map
-  const fieldIndexMap = {};
-  for (const targetField of Object.keys(TARGET_MATCH)) {
-    for (let i = 0; i < headerCells.length; i++) {
-      const cellLower = headerCells[i].toLowerCase().trim();
-      if (!cellLower) continue;
+  // Define strict bounds for each column
+  for (let i = 0; i < headers.length; i++) {
+    const current = headers[i];
+    const next = headers[i + 1];
+    
+    // Left-aligned column heuristic: a column starts roughly where its header starts,
+    // and ends right before the next header starts. We add a small 2-character margin
+    // to catch data that is slightly misaligned to the left.
+    current.colStart = i === 0 ? 0 : current.start - 2;
+    current.colEnd = next ? next.start - 2 : Infinity;
+  }
 
+  // Map spatial bounds to target fields
+  const fieldBounds = {};
+  for (const header of headers) {
+    const cellLower = header.text.toLowerCase().trim();
+    if (!cellLower) continue;
+
+    for (const targetField of Object.keys(TARGET_MATCH)) {
       const isMatch = TARGET_MATCH[targetField].some(synonym => {
         if (cellLower === synonym) return true;
         if (cellLower.includes(synonym)) return true;
-        // Only allow synonym to include cellLower if it is reasonably long to prevent single-letter false positives
         if (cellLower.length >= 3 && synonym.includes(cellLower)) return true;
         return false;
       });
 
       if (isMatch) {
-        fieldIndexMap[targetField] = i;
+        fieldBounds[targetField] = header;
         break;
       }
     }
   }
 
   console.log("[tokenizer] Detected Delimiter:", delimiter);
-  console.log("[tokenizer] Field Index Map:", JSON.stringify(fieldIndexMap));
+  console.log("[tokenizer] Field Bounds:", Object.keys(fieldBounds).map(k => `${k}(${fieldBounds[k].colStart}-${fieldBounds[k].colEnd})`).join(", "));
 
   // Layer 6: Validate Minimum Fields
   try {
-    validateFieldMap(fieldIndexMap);
+    validateFieldBounds(fieldBounds);
   } catch (err) {
     console.error("[tokenizer]", err.message);
     return [];
@@ -249,36 +269,44 @@ export function tokenize(rawLines, isOCR = false) {
     }
   }
 
-  // Steps 5-7 — Split + Detect + Accumulate
+  // Steps 5-7 — Spatial Extraction + Detect + Accumulate
   const entries = [];
   
   for (const line of tableLines) {
-    const startsWithDoubleSpace = line.startsWith("  ") || line.startsWith("\t");
-    const cells = splitByDelimiter(line.trimStart(), delimiter);
-    
-    if (startsWithDoubleSpace) {
-      cells.unshift("");
-    }
+    const firstCellText = headers[0] && line.length > headers[0].colStart 
+      ? line.substring(headers[0].colStart, headers[0].colEnd).trim() 
+      : "";
 
-    if (isHeaderNoiseLine(cells)) continue;
+    if (isHeaderNoiseString(firstCellText)) continue;
 
-    if (cells[0].trim() !== "" && !isValidCourseCode(cells[0])) {
+    if (firstCellText !== "" && !isValidCourseCode(firstCellText)) {
       continue;
     }
 
-    const isContinuation = isContinuationRow(cells, fieldIndexMap);
+    // Extract data using coordinates, NOT splits
+    const cells = {};
+    for (const targetField of Object.keys(fieldBounds)) {
+      const bound = fieldBounds[targetField];
+      let cellText = "";
+      if (line.length > bound.colStart) {
+        cellText = line.substring(bound.colStart, bound.colEnd).trim();
+      }
+      cells[targetField] = cellText;
+    }
+
+    const isContinuation = isContinuationRow(cells, firstCellText);
 
     if (!isContinuation) {
-      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
-      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
+      const t = cells.time || "";
+      const r = cells.room || "";
       
       const rawTimeValues = readMultiValue(t);
       const rawRoomValues = readMultiValue(r);
 
       const entry = {
-        subject_code:  (fieldIndexMap.course_code !== undefined && cells[fieldIndexMap.course_code]) ? cells[fieldIndexMap.course_code].trim() : "",
-        subject_title: (fieldIndexMap.course_title !== undefined && cells[fieldIndexMap.course_title]) ? cells[fieldIndexMap.course_title].trim() : "",
-        days_raw:      (fieldIndexMap.day !== undefined && cells[fieldIndexMap.day]) ? cells[fieldIndexMap.day].trim() : "",
+        subject_code:  cells.course_code || "",
+        subject_title: cells.course_title || "",
+        days_raw:      cells.day || "",
         times_raw:     rawTimeValues,
         rooms_raw:     rawRoomValues
       };
@@ -288,8 +316,8 @@ export function tokenize(rawLines, isOCR = false) {
       if (entries.length === 0) continue;
       
       const lastEntry = entries[entries.length - 1];
-      const t = (fieldIndexMap.time !== undefined && cells[fieldIndexMap.time]) ? cells[fieldIndexMap.time].trim() : "";
-      const r = (fieldIndexMap.room !== undefined && cells[fieldIndexMap.room]) ? cells[fieldIndexMap.room].trim() : "";
+      const t = cells.time || "";
+      const r = cells.room || "";
       
       const rawTimeValues = readMultiValue(t);
       const rawRoomValues = readMultiValue(r);
