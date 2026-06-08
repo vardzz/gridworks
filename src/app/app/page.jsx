@@ -3,6 +3,7 @@
 
 import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { Zap, Settings, Grid as GridIcon, FileCheck, Rocket, UploadCloud, Calendar, Table, Layout, Image as ImageIcon, Edit3, Monitor } from "lucide-react";
 import { useAppState } from "@/hooks/useAppState";
 import { useParser } from "@/hooks/useParser";
 
@@ -107,10 +108,26 @@ export default function AppPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-white">
+    <div className="flex flex-col h-screen bg-white relative overflow-hidden">
+      {/* Floating Background Icons */}
+      <div className="absolute inset-0 pointer-events-none z-0 opacity-20">
+        <div className="absolute top-[5%] left-[8%] text-prussian-blue-300 animate-drift-1"><Zap size={80} strokeWidth={1} /></div>
+        <div className="absolute top-[35%] right-[6%] text-[#fca311] animate-drift-2"><Settings size={100} strokeWidth={1} /></div>
+        <div className="absolute bottom-[25%] left-[12%] text-alabaster-grey-900 animate-drift-3"><GridIcon size={120} strokeWidth={1} /></div>
+        <div className="absolute bottom-[15%] right-[10%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-2s'}}><FileCheck size={70} strokeWidth={1.5} /></div>
+        <div className="absolute top-[55%] left-[18%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
+        <div className="absolute top-[15%] right-[25%] text-prussian-blue-300 animate-drift-3" style={{animationDelay: '-1s'}}><UploadCloud size={60} strokeWidth={1} /></div>
+        <div className="absolute bottom-[40%] right-[20%] text-[#fca311] animate-drift-1" style={{animationDelay: '-3s'}}><Calendar size={110} strokeWidth={1} /></div>
+        <div className="absolute top-[75%] left-[30%] text-prussian-blue-300 animate-drift-2" style={{animationDelay: '-4s'}}><Table size={85} strokeWidth={1.2} /></div>
+        <div className="absolute top-[25%] left-[35%] text-alabaster-grey-900 animate-drift-1" style={{animationDelay: '-6s'}}><Layout size={75} strokeWidth={1} /></div>
+        <div className="absolute bottom-[5%] left-[45%] text-[#fca311] animate-drift-3" style={{animationDelay: '-2.5s'}}><ImageIcon size={65} strokeWidth={1.5} /></div>
+        <div className="absolute top-[8%] right-[45%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-4.5s'}}><Edit3 size={95} strokeWidth={1} /></div>
+        <div className="absolute bottom-[60%] left-[5%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-1.5s'}}><Monitor size={70} strokeWidth={1.2} /></div>
+      </div>
+
       {/* Persistent banners */}
       {needsMigration && (
-        <div className="px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between text-sm">
+        <div className="relative z-10 px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between text-sm">
           <span className="text-amber-800">
             Your saved schedule was created with an older version of Gridworks.
             It may display incorrectly.
@@ -136,20 +153,20 @@ export default function AppPage() {
       )}
 
       {!storageAvailable && (
-        <div className="px-4 py-2 bg-alabaster-grey-800 border-b text-xs text-prussian-blue-700 text-center">
+        <div className="relative z-10 px-4 py-2 bg-alabaster-grey-800 border-b text-xs text-prussian-blue-700 text-center">
           Your schedule won&apos;t be saved between sessions in this browser
           mode.
         </div>
       )}
 
       {storageError === "quota_exceeded" && (
-        <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700 text-center">
+        <div className="relative z-10 px-4 py-2 bg-red-50 border-b border-red-200 text-xs text-red-700 text-center">
           Couldn&apos;t save your schedule. Try clearing unused browser data.
         </div>
       )}
 
       {/* Screen router */}
-      <div className="flex-1 overflow-hidden">
+      <div className="relative z-10 flex-1 overflow-hidden">
         {screen === "intake" && (
           <IntakeScreen
             parser={parser}
