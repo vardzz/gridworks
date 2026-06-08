@@ -113,16 +113,16 @@ export default function AppPage() {
       <div className="absolute inset-0 pointer-events-none z-0 opacity-20">
         <div className="absolute top-[5%] left-[8%] text-prussian-blue-300 animate-drift-1"><Zap size={80} strokeWidth={1} /></div>
         <div className="absolute top-[35%] right-[6%] text-[#fca311] animate-drift-2"><Settings size={100} strokeWidth={1} /></div>
-        <div className="absolute bottom-[25%] left-[12%] text-alabaster-grey-900 animate-drift-3"><GridIcon size={120} strokeWidth={1} /></div>
+        <div className="absolute bottom-[10%] left-[12%] text-alabaster-grey-900 animate-drift-3"><GridIcon size={120} strokeWidth={1} /></div>
         <div className="absolute bottom-[15%] right-[10%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-2s'}}><FileCheck size={70} strokeWidth={1.5} /></div>
-        <div className="absolute top-[55%] left-[18%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
-        <div className="absolute top-[15%] right-[25%] text-prussian-blue-300 animate-drift-3" style={{animationDelay: '-1s'}}><UploadCloud size={60} strokeWidth={1} /></div>
-        <div className="absolute bottom-[40%] right-[20%] text-[#fca311] animate-drift-1" style={{animationDelay: '-3s'}}><Calendar size={110} strokeWidth={1} /></div>
-        <div className="absolute top-[75%] left-[30%] text-prussian-blue-300 animate-drift-2" style={{animationDelay: '-4s'}}><Table size={85} strokeWidth={1.2} /></div>
-        <div className="absolute top-[25%] left-[35%] text-alabaster-grey-900 animate-drift-1" style={{animationDelay: '-6s'}}><Layout size={75} strokeWidth={1} /></div>
-        <div className="absolute bottom-[5%] left-[45%] text-[#fca311] animate-drift-3" style={{animationDelay: '-2.5s'}}><ImageIcon size={65} strokeWidth={1.5} /></div>
-        <div className="absolute top-[8%] right-[45%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-4.5s'}}><Edit3 size={95} strokeWidth={1} /></div>
-        <div className="absolute bottom-[60%] left-[5%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-1.5s'}}><Monitor size={70} strokeWidth={1.2} /></div>
+        <div className="absolute top-[55%] left-[5%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-5s'}}><Rocket size={90} strokeWidth={1} /></div>
+        <div className="absolute top-[15%] right-[15%] text-prussian-blue-300 animate-drift-3" style={{animationDelay: '-1s'}}><UploadCloud size={60} strokeWidth={1} /></div>
+        <div className="absolute bottom-[45%] right-[5%] text-[#fca311] animate-drift-1" style={{animationDelay: '-3s'}}><Calendar size={110} strokeWidth={1} /></div>
+        <div className="absolute bottom-[5%] left-[30%] text-prussian-blue-300 animate-drift-2" style={{animationDelay: '-4s'}}><Table size={85} strokeWidth={1.2} /></div>
+        <div className="absolute top-[15%] left-[20%] text-alabaster-grey-900 animate-drift-1" style={{animationDelay: '-6s'}}><Layout size={75} strokeWidth={1} /></div>
+        <div className="absolute bottom-[5%] right-[30%] text-[#fca311] animate-drift-3" style={{animationDelay: '-2.5s'}}><ImageIcon size={65} strokeWidth={1.5} /></div>
+        <div className="absolute top-[5%] right-[35%] text-alabaster-grey-900 animate-drift-2" style={{animationDelay: '-4.5s'}}><Edit3 size={95} strokeWidth={1} /></div>
+        <div className="absolute top-[30%] left-[5%] text-prussian-blue-300 animate-drift-1" style={{animationDelay: '-1.5s'}}><Monitor size={70} strokeWidth={1.2} /></div>
       </div>
 
       {/* Persistent banners */}
