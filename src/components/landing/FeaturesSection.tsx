@@ -32,13 +32,13 @@ export function FeaturesSection() {
           <div className="group">
             <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">01 — Intake</div>
             <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Drop your raw data.</h3>
-            <div className="aspect-[4/3] bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] overflow-hidden rounded-3xl">
+            <div className="aspect-[4/3] max-sm:aspect-[4/5] max-sm:p-4 bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] overflow-hidden rounded-3xl">
               
               <div className="w-full max-w-md bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#fca311] to-prussian-blue-300 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
                 {/* Drag and Drop Zone */}
-                <div className="border-2 border-dashed border-alabaster-grey-900 rounded-xl bg-alabaster-grey/20 flex flex-col items-center justify-center p-12 relative group-hover:border-prussian-blue-300 transition-colors duration-500 overflow-hidden">
+                <div className="border-2 border-dashed border-alabaster-grey-900 rounded-xl bg-alabaster-grey/20 flex flex-col items-center justify-center p-6 sm:p-12 relative group-hover:border-prussian-blue-300 transition-colors duration-500 overflow-hidden">
                   
                   <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-500 relative z-10">
                     <UploadCloud className="text-prussian-blue-600 group-hover:text-[#fca311] transition-colors" size={32} />
@@ -64,7 +64,7 @@ export function FeaturesSection() {
           <div className="group">
             <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">02 — Review</div>
             <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Edit with precision.</h3>
-            <div className="aspect-[4/3] bg-prussian-blue border border-prussian-blue-600 p-8 md:p-12 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] rounded-3xl overflow-hidden relative">
+            <div className="aspect-[4/3] max-sm:aspect-[4/5] max-sm:p-4 bg-prussian-blue border border-prussian-blue-600 p-8 md:p-12 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] rounded-3xl overflow-hidden relative">
               
               <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:2rem_2rem]" />
 
@@ -105,7 +105,7 @@ export function FeaturesSection() {
           <div className="group">
             <div className="text-sm font-bold text-[#fca311] tracking-widest uppercase mb-4">03 — Export</div>
             <h3 className="text-4xl font-bold tracking-tight text-black mb-8">Print-ready aesthetics.</h3>
-            <div className="aspect-[4/3] bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-12 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] rounded-3xl">
+            <div className="aspect-[4/3] max-sm:aspect-[4/5] max-sm:p-4 bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-12 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] rounded-3xl">
               
               <div className="w-full h-full bg-[#f8f9fa] border border-alabaster-grey shadow-2xl rounded-2xl flex flex-col overflow-hidden relative transition-transform duration-700 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)]">
                 {/* Toolbar */}
