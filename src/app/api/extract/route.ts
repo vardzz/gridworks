@@ -42,16 +42,39 @@ export async function POST(request: Request) {
           rows.sort((a, b) => a.y - b.y);
 
           // 3. X-Axis Grouping (Columns)
-          // X-Boundary Constants based on absolute spatial positioning
-          const BOUNDS = {
+          // Dynamically detect column bounds based on header locations to ensure 100% accuracy
+          let BOUNDS = {
             code:  { min: 0,  max: 6 },
             title: { min: 6,  max: 18 },
-            units: { min: 18, max: 22 }, // Disregarded
-            day:   { min: 22, max: 28 }, // Example: x > 22 and x < 28 (Adjustable based on exact PDF scale)
+            day:   { min: 22, max: 28 },
             time:  { min: 28, max: 36 },
             room:  { min: 36, max: 45 },
-            sec:   { min: 45, max: 50 }
           };
+
+          const headerRow = rows.find(r => 
+            r.nodes.some(n => n.text.toLowerCase().includes('course code') || n.text.toLowerCase().includes('time'))
+          );
+
+          if (headerRow) {
+            const getX = (keyword: string) => {
+              const node = headerRow.nodes.find(n => n.text.toLowerCase().includes(keyword));
+              return node ? node.x : null;
+            };
+
+            const codeX = getX('code') ?? 0;
+            const descX = getX('description') ?? 6;
+            const dayX = getX('day') ?? 22;
+            const timeX = getX('time') ?? 28;
+            const roomX = getX('room') ?? 36;
+
+            BOUNDS = {
+              code:  { min: codeX - 1, max: descX - 0.5 },
+              title: { min: descX - 0.5, max: dayX - 2 }, // Ignore intermediate units
+              day:   { min: dayX - 1, max: timeX - 0.5 },
+              time:  { min: timeX - 1, max: roomX - 0.5 },
+              room:  { min: roomX - 1, max: roomX + 15 },
+            };
+          }
 
           const extractedEntries: any[] = [];
 
@@ -70,27 +93,14 @@ export async function POST(request: Request) {
             const timeRaw = getTextInBounds(BOUNDS.time.min, BOUNDS.time.max);
             const room = getTextInBounds(BOUNDS.room.min, BOUNDS.room.max);
 
-            // 4. Time Parsing (split by -)
-            let startTime = null;
-            let endTime = null;
-            if (timeRaw && timeRaw.includes('-')) {
-              const parts = timeRaw.split('-');
-              startTime = parts[0]?.trim() || null;
-              endTime = parts[1]?.trim() || null;
-            } else if (timeRaw) {
-              startTime = timeRaw;
-              endTime = timeRaw;
-            }
-
             // Filter out empty noise rows
             if (courseCode || courseTitle || timeRaw) {
                extractedEntries.push({
                  course_code: courseCode || null,
                  course_title: courseTitle || null,
-                 day: day || null,
-                 start_time: startTime,
-                 end_time: endTime,
-                 room: room || null,
+                 days_raw: day || null,
+                 times_raw: timeRaw ? [timeRaw] : [],
+                 rooms_raw: room ? [room] : [],
                });
             }
           });

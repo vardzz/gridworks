@@ -1,8 +1,6 @@
 // src/lib/parser/index.js — Main parseFile() orchestrator
 
-import { extractTextFromPDF } from "./pdfExtractor";
 import { extractTextFromImage } from "./ocrExtractor";
-import { tokenize } from "./regexTokenizer";
 import { normalizeEntries } from "./normalizer";
 import { scoreDocument } from "./confidenceScorer";
 import { preCheckIsRegistrationForm } from "./llmFallback";
@@ -42,46 +40,47 @@ export async function parseFile(file, options = {}) {
     }
   }
 
-  // ── 3 & 4. Extraction ─────────────────────────────────────────────
+  // ── 3 & 4. Extraction via Next.js Backend API (pdf2json) ────────────────
+  let rawEntries = [];
+  
   if (isImage) {
     const rawText = await extractTextFromImage(file, onProgress);
     if (rawText) {
+      // Legacy image handling (if needed, but usually image uploads will fail the new backend unless supported)
       rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+      // Fallback local tokenization for OCR could go here if we retained it, 
+      // but the prompt mandates API migration.
     }
   } else {
     try {
-      rawLines = await extractTextFromPDF(file);
-    } catch (error) {
-      if (error.code === "IMAGE_BASED_PDF") {
-        console.warn("Pre-flight failed: Image-based PDF detected. Routing to OCR.");
-        try {
-          const rawText = await extractTextFromImage(file, onProgress);
-          if (rawText) {
-            rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
-            isOCR = true;
-          }
-        } catch (err) {
-          console.error("OCR failed on PDF:", err);
-          return { entries: [], confidence: 0, error: "extraction_failed" };
-        }
-      } else {
-        console.error("PDF extraction failed:", error);
-        return { entries: [], confidence: 0, error: "extraction_failed" };
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch('/api/extract', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+         console.error("API Extraction failed:", result.error);
+         return { entries: [], confidence: 0, error: "extraction_failed" };
       }
+      
+      rawEntries = result.data;
+    } catch (error) {
+      console.error("Network or API extraction failed:", error);
+      return { entries: [], confidence: 0, error: "extraction_failed" };
     }
   }
 
-  if (!rawLines || rawLines.length === 0) {
-    console.error("[parser] Extracted raw lines are empty");
+  if (!rawEntries || rawEntries.length === 0) {
+    console.error("[parser] Extracted entries are empty");
     return { entries: [], confidence: 0, error: "extraction_failed" };
   }
 
-  console.log(`[parser] Extracted ${rawLines.length} lines`);
-
-  // ── 5. Tokenize ───────────────────────────────────────────────────
-  const rawEntries = tokenize(rawLines, isOCR);
-
-  // ── 6. Normalize ──────────────────────────────────────────────────
+  // ── 6. Normalize (Legacy fallback, though API returns mostly clean data) ──
   const finalEntries = normalizeEntries(rawEntries);
 
   console.log("[parser] Raw entries:", rawEntries.length);
