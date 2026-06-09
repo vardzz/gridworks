@@ -203,33 +203,34 @@ function accumulateEntries(dataLines, fieldMap, delimiter) {
   return entries;
 }
 
-
-
 // Layer 0: Auto-Detect Delimiter
 function detectDelimiter(headerLine) {
-  const candidates = [
-    { pattern: /\t+/,    name: 'TAB' },
-    { pattern: /\s{3,}/, name: 'SPACE_3+' },
-    { pattern: /\s{2,}/, name: 'SPACE_2+' },
-  ];
-
-  let bestDelimiter = null;
-  let bestCellCount = 0;
-
-  for (const candidate of candidates) {
-    const cells = headerLine.split(candidate.pattern).map(s => s.trim()).filter(Boolean);
-    const hasScheduleConcept = cells.some(cell =>
-      SCHEDULE_CONCEPTS.some(group =>
-        group.some(syn => cell.toLowerCase().includes(syn))
-      )
-    );
-    if (hasScheduleConcept && cells.length > bestCellCount) {
-      bestCellCount = cells.length;
-      bestDelimiter = candidate.pattern;
-    }
+  // TAB wins if present — it is the explicit column delimiter
+  // set by pdfExtractor.js and is unambiguous
+  if (headerLine.includes("\t")) {
+    console.log("[tokenizer] Delimiter detected: TAB");
+    return /\t/;
   }
-
-  return bestDelimiter ?? /\s{2,}/;
+ 
+  // Fallback for OCR text or non-tab PDFs:
+  // Try 3+ spaces, then 2+ spaces
+  if (/\s{3,}/.test(headerLine)) {
+    console.log("[tokenizer] Delimiter detected: 3+ spaces");
+    return /\s{3,}/;
+  }
+ 
+  if (/\s{2,}/.test(headerLine)) {
+    console.log("[tokenizer] Delimiter detected: 2+ spaces");
+    return /\s{2,}/;
+  }
+ 
+  console.warn("[tokenizer] No reliable delimiter found — using single space (low confidence)");
+  return /\s+/;
+}
+ 
+// Also update your splitLine function to use the detected delimiter:
+function splitLine(line, delimiter) {
+  return line.split(delimiter).map(s => s.trim()).filter(s => s !== "");
 }
 
 function buildFieldIndexMap(headerCells) {
