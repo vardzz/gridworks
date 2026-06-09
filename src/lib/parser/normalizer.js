@@ -12,8 +12,14 @@ const COMPOUND_DAYS = {
 };
 
 const SINGLE_DAYS = {
-  'm': 'Monday',  't': 'Tuesday',  'w': 'Wednesday',
-  'th': 'Thursday', 'f': 'Friday', 's': 'Saturday', 'su': 'Sunday'
+  'm':  'Monday',
+  't':  'Tuesday',
+  'w':  'Wednesday',
+  'th': 'Thursday',
+  'f':  'Friday',
+  's':  'Saturday',
+  'sa': 'Saturday',
+  'su': 'Sunday'
 };
 
 const WORD_DAYS = {
@@ -69,50 +75,44 @@ export function normalizeDays(raw) {
 
 function parseTo24h(token) {
   if (!token || typeof token !== 'string') return null;
-  let t = token.trim().toLowerCase().replace(/\s+/g, '');
+  let t = token.trim().toLowerCase();
 
-  // Already 24h with colon: "13:00"
-  if (/^\d{2}:\d{2}$/.test(t)) return t;
-
-  // Military time no colon: "1300"
-  if (/^\d{3,4}$/.test(t)) {
-    const h = parseInt(t.slice(0, -2), 10);
-    const m = parseInt(t.slice(-2), 10);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  }
-
-  // Extract meridiem
   let meridiem = null;
-  if (t.endsWith('pm')) { meridiem = 'pm'; t = t.slice(0,-2); }
-  else if (t.endsWith('am')) { meridiem = 'am'; t = t.slice(0,-2); }
-  else if (t.endsWith('p'))  { meridiem = 'pm'; t = t.slice(0,-1); }
-  else if (t.endsWith('a'))  { meridiem = 'am'; t = t.slice(0,-1); }
+  if (t.endsWith('pm'))      { meridiem = 'pm'; t = t.slice(0, -2).trim(); }
+  else if (t.endsWith('am')) { meridiem = 'am'; t = t.slice(0, -2).trim(); }
+  else if (t.endsWith('p'))  { meridiem = 'pm'; t = t.slice(0, -1).trim(); }
+  else if (t.endsWith('a'))  { meridiem = 'am'; t = t.slice(0, -1).trim(); }
 
-  const parts = t.split(':');
-  let h = parseInt(parts[0], 10);
-  let m = parts[1] !== undefined ? parseInt(parts[1], 10) : 0;
-  if (isNaN(h) || isNaN(m)) return null;
+  const [hStr, mStr] = t.split(':');
+  const h_raw = parseInt(hStr, 10);
+  const m = mStr !== undefined ? parseInt(mStr, 10) : 0;
 
-  // No meridiem + hour < 8 → assume PM (afternoon classes)
-  // No meridiem + hour >= 8 → assume AM (morning classes)
-  if (meridiem === null) meridiem = h < 8 ? 'pm' : 'am';
+  if (isNaN(h_raw)) return null;
 
+  let h = h_raw;
+  if (meridiem === null) h < 8 ? (meridiem = 'pm') : (meridiem = 'am');
   if (meridiem === 'pm' && h !== 12) h += 12;
   if (meridiem === 'am' && h === 12) h = 0;
 
-  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 function parseTimeRange(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') {
     return { start_time: null, end_time: null };
   }
-  // Split on any dash variant surrounded by optional whitespace
+
+  // Split on: " - ", "–", "—", "-" with any surrounding whitespace
   const parts = timeStr.split(/\s*[-–—]\s*/);
-  if (parts.length < 2) return { start_time: null, end_time: null };
+
+  if (parts.length < 2) {
+    console.warn('[parseTimeRange] Could not split:', timeStr);
+    return { start_time: null, end_time: null };
+  }
+
   return {
-    start_time: parseTo24h(parts[0]),
-    end_time:   parseTo24h(parts[1])
+    start_time: parseTo24h(parts[0].trim()),
+    end_time:   parseTo24h(parts[1].trim()),
   };
 }
 
