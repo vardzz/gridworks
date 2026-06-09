@@ -164,11 +164,56 @@ function shouldMergeWithPrevious(cells, lastEntry, fieldMap) {
   return false;
 }
 
+function isContinuationRow(cells, fieldIndexMap) {
+  // CONDITION A: course_code cell is empty after splitting
+  const codeIndex = fieldIndexMap.course_code;
+  if (codeIndex !== undefined && cells[codeIndex]?.trim() === '') {
+    return true;
+  }
+
+  // CONDITION B: first cell fails course code shape validation
+  // AND the first cell looks like a time value
+  const firstCell = cells[0]?.trim() ?? '';
+  const looksLikeTime = /^\d{1,2}:\d{2}/.test(firstCell);
+  if (looksLikeTime) {
+    return true;
+  }
+
+  // CONDITION C: first cell fails course code validation
+  // AND the row has time/room data but no recognizable code
+  const hasValidCode = isValidCourseCodeShape(firstCell);
+  if (!hasValidCode && firstCell !== '') {
+    const timeIndex = fieldIndexMap.time;
+    const hasTimeData = timeIndex !== undefined && /\d/.test(cells[timeIndex] ?? '');
+    if (hasTimeData) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function accumulateEntries(dataLines, fieldMap, delimiter) {
   const entries = [];
 
   for (const line of dataLines) {
     const cells = line.split(delimiter).map(s => s.trim());
+
+    if (isContinuationRow(cells, fieldMap)) {
+      const lastEntry = entries[entries.length - 1];
+      if (lastEntry) {
+        // Format B (time first) vs Format A (empty leading cells)
+        const isFormatB = /^\d{1,2}:\d{2}/.test(cells[0]?.trim() ?? '');
+        
+        const timeVal = isFormatB ? cells[0] : cells[fieldMap.time];
+        const roomVal = isFormatB ? cells[1] : cells[fieldMap.room];
+
+        if (timeVal?.trim()) lastEntry.times_raw.push(timeVal.trim());
+        if (roomVal?.trim()) lastEntry.rooms_raw.push(roomVal.trim());
+      }
+      continue; // skip creating a new entry
+    }
+
     const codeCell = cells[fieldMap.course_code] ?? '';
     const timeCell = cells[fieldMap.time] ?? '';
     const roomCell = cells[fieldMap.room] ?? '';
@@ -178,10 +223,9 @@ function accumulateEntries(dataLines, fieldMap, delimiter) {
 
     const lastEntry = entries[entries.length - 1] ?? null;
     const isSameCodeAsPrevious = shouldMergeWithPrevious(cells, lastEntry, fieldMap);
-    const isEmptyCode = codeClass === 'EMPTY';
 
-    if (isEmptyCode || isSameCodeAsPrevious) {
-      // Continuation — append time and room to last entry
+    if (isSameCodeAsPrevious) {
+      // Continuation Format C — append time and room to last entry
       if (lastEntry) {
         if (timeCell) lastEntry.times_raw.push(timeCell);
         if (roomCell) lastEntry.rooms_raw.push(roomCell);
