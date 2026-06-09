@@ -281,3 +281,26 @@ function splitAndNormalizeEntry(rawEntry) {
  
   return output;
 }
+ 
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN EXPORT — normalizeEntries()
+// ─────────────────────────────────────────────────────────────────────────────
+ 
+/**
+ * Converts raw tokenizer output into schema-ready schedule entries.
+ *
+ * @param {object[]} rawEntries — array from regexTokenizer.js
+ * @returns {object[]} — array of { course_code, course_title, days, start_time, end_time, room }
+ */
+export function normalizeEntries(rawEntries) {
+  if (!Array.isArray(rawEntries)) return [];
+ 
+  const output = [];
+ 
+  for (const entry of rawEntries) {
+    const normalized = splitAndNormalizeEntry(entry);
+    output.push(...normalized);
+  }
+ 
+  return output;
+}
