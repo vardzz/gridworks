@@ -69,27 +69,26 @@ function extractTableLines(allLines, headerIndex) {
   return dataLines;
 }
 
-// Layer 1: Header Synonym Expansion
-const TARGET_MATCH = {
+const FIELD_SYNONYMS = {
   course_code: [
     "course code", "code", "subject code", "subj code", "subj. code",
-    "subject no", "subj no", "subj. no.", "no.", "katalogo"
+    "subject no", "subj no", "catalog no", "cat. no", "katalogo"
   ],
   course_title: [
     "course description", "description", "subject", "title",
-    "course title", "subject title", "subject description",
-    "descriptive title", "pamagat"
+    "course title", "subject title", "descriptive title",
+    "subject description", "pamagat"
   ],
   day: [
-    "day", "days", "day/s", "araw", "schedule day", "sched"
+    "day", "days", "day/s", "araw", "schedule day", "sched day"
   ],
   time: [
-    "time", "time slot", "schedule", "class hours", "oras",
-    "time schedule", "class time", "sched time"
+    "time", "time slot", "class hours", "schedule", "oras",
+    "class time", "sched time", "meeting time"
   ],
   room: [
     "room", "room no", "room no.", "venue", "location",
-    "silid", "classroom", "room/venue", "bldg/room"
+    "silid", "classroom", "room/venue", "building", "bldg"
   ]
 };
 
@@ -148,49 +147,65 @@ function readMultiValue(cellValue) {
 
 // Layer 0: Auto-Detect Delimiter
 function detectDelimiter(headerLine) {
-  if (headerLine.includes("\t")) return "TAB";
-  if (/\s{3,}/.test(headerLine)) return "MULTI_SPACE_3";
-  if (/\s{2,}/.test(headerLine)) return "MULTI_SPACE_2";
-  return "SINGLE_SPACE";
-}
+  const candidates = [
+    { pattern: /\t+/,    name: 'TAB' },
+    { pattern: /\s{3,}/, name: 'SPACE_3+' },
+    { pattern: /\s{2,}/, name: 'SPACE_2+' },
+  ];
 
-function splitByDelimiter(line, delimiter) {
-  switch (delimiter) {
-    case "TAB":           return line.split("\t");
-    case "MULTI_SPACE_3": return line.split(/\s{3,}/);
-    case "MULTI_SPACE_2": return line.split(/\s{2,}/);
-    case "SINGLE_SPACE":  return line.split(/\s+/);
-  }
-  return line.split(/\s{2,}/);
-}
+  let bestDelimiter = null;
+  let bestCellCount = 0;
 
-// Layer 5: Continuation Row Detection
-function isContinuationRow(cells, firstCellText) {
-  if (cells.course_code !== undefined && cells.course_code === "") {
-    return true;
-  }
-
-  if (firstCellText === "") {
-    return true;
-  }
-
-  if (!isValidCourseCode(firstCellText)) {
-    const hasTimeOrRoom = (cells.time && cells.time !== "") || (cells.room && cells.room !== "");
-    if (hasTimeOrRoom) {
-      return true;
+  for (const candidate of candidates) {
+    const cells = headerLine.split(candidate.pattern).map(s => s.trim()).filter(Boolean);
+    const hasScheduleConcept = cells.some(cell =>
+      SCHEDULE_CONCEPTS.some(group =>
+        group.some(syn => cell.toLowerCase().includes(syn))
+      )
+    );
+    if (hasScheduleConcept && cells.length > bestCellCount) {
+      bestCellCount = cells.length;
+      bestDelimiter = candidate.pattern;
     }
   }
 
-  return false;
+  return bestDelimiter ?? /\s{2,}/;
 }
 
-// Layer 6: Fallback Header Detection
-const REQUIRED_MINIMUM = ["course_code", "day", "time"];
+function buildFieldIndexMap(headerCells) {
+  const map = {};
 
-function validateFieldBounds(fieldBounds) {
-  const missing = REQUIRED_MINIMUM.filter(f => !fieldBounds[f]);
-  if (missing.length > 0) {
-    throw new Error("MISSING_REQUIRED_COLUMNS: " + missing.join(", "));
+  headerCells.forEach((cell, index) => {
+    const lower = cell.toLowerCase().trim();
+    for (const [field, synonyms] of Object.entries(FIELD_SYNONYMS)) {
+      if (synonyms.some(syn => lower.includes(syn))) {
+        // Only assign if not already assigned (first match wins)
+        if (map[field] === undefined) {
+          map[field] = index;
+        }
+      }
+    }
+  });
+
+  console.log('[Gridworks Extractor] Header cells:', headerCells);
+  console.log('[Gridworks Extractor] Field index map:', map);
+
+  return map;
+}
+
+function validateFieldMap(map, headerCells) {
+  const REQUIRED = ['course_code', 'time'];
+  const RECOMMENDED = ['day', 'room', 'course_title'];
+
+  const missingRequired = REQUIRED.filter(f => map[f] === undefined);
+  if (missingRequired.length > 0) {
+    throw new Error(`MISSING_REQUIRED_COLUMNS: ${missingRequired.join(', ')}`);
+  }
+
+  const missingRecommended = RECOMMENDED.filter(f => map[f] === undefined);
+  if (missingRecommended.length > 0) {
+    console.warn('[Gridworks Extractor] Missing optional columns:', missingRecommended);
+    // Do not throw — set missing fields to null in output
   }
 }
 
@@ -205,7 +220,7 @@ function normalizeOCRText(rawText, delimiter) {
 
   text = text.replace(/(\d:\d{2}\s*[aApP][mM])\s+(\d:\d{2})/g, "$1 - $2");
 
-  if (delimiter === "MULTI_SPACE_2") {
+  if (delimiter && delimiter.toString() === '/\\s{2,}/') {
     text = text.replace(/\s{3,}/g, "  ");
   }
 
@@ -249,61 +264,11 @@ export function tokenize(rawLines, isOCR = false) {
   // Re-fetch header line after optional OCR normalization
   const normHeaderLine = rawLines[headerIndex];
   
-  // Spatial Heuristic: Extract spatial coordinates of headers
-  let lookahead = "\\s{2,}|\\t";
-  if (delimiter === "SINGLE_SPACE") lookahead = "\\s+|\\t";
-  
-  const headers = [];
-  const regex = new RegExp(`(\\S(?:.*?\\S)?)(?=${lookahead}|$)`, "g");
-  let match;
-  while ((match = regex.exec(normHeaderLine)) !== null) {
-    headers.push({
-      text: match[1],
-      start: match.index,
-      end: match.index + match[1].length
-    });
-    if (match.index === regex.lastIndex) regex.lastIndex++;
-  }
+  const headerCells = normHeaderLine.split(delimiter).map(s => s.trim()).filter(Boolean);
+  const fieldIndexMap = buildFieldIndexMap(headerCells);
 
-  // Define strict bounds for each column
-  for (let i = 0; i < headers.length; i++) {
-    const current = headers[i];
-    const next = headers[i + 1];
-    
-    // Left-aligned column heuristic: a column starts roughly where its header starts,
-    // and ends right before the next header starts. We add a small 2-character margin
-    // to catch data that is slightly misaligned to the left.
-    current.colStart = i === 0 ? 0 : current.start - 2;
-    current.colEnd = next ? next.start - 2 : Infinity;
-  }
-
-  // Map spatial bounds to target fields
-  const fieldBounds = {};
-  for (const targetField of Object.keys(TARGET_MATCH)) {
-    for (const header of headers) {
-      const cellLower = header.text.toLowerCase().trim();
-      if (!cellLower) continue;
-
-      const isMatch = TARGET_MATCH[targetField].some(synonym => {
-        if (cellLower === synonym) return true;
-        if (cellLower.includes(synonym)) return true;
-        if (cellLower.length >= 3 && synonym.includes(cellLower)) return true;
-        return false;
-      });
-
-      if (isMatch) {
-        fieldBounds[targetField] = header;
-        break;
-      }
-    }
-  }
-
-  console.log("[tokenizer] Detected Delimiter:", delimiter);
-  console.log("[tokenizer] Field Bounds:", Object.keys(fieldBounds).map(k => `${k}(${fieldBounds[k].colStart}-${fieldBounds[k].colEnd})`).join(", "));
-
-  // Layer 6: Validate Minimum Fields
   try {
-    validateFieldBounds(fieldBounds);
+    validateFieldMap(fieldIndexMap, headerCells);
   } catch (err) {
     console.error("[tokenizer]", err.message);
     return [];
@@ -316,26 +281,18 @@ export function tokenize(rawLines, isOCR = false) {
   const entries = [];
   
   for (const line of tableLines) {
-    const firstCellText = headers[0] && line.length > headers[0].colStart 
-      ? line.substring(headers[0].colStart, headers[0].colEnd).trim() 
-      : "";
+    const splitLine = line.split(delimiter).map(s => s.trim());
+    
+    // Temporarily build cells object for backward compatibility with Problem 3 & 4
+    const cells = {
+      course_code: fieldIndexMap.course_code !== undefined ? splitLine[fieldIndexMap.course_code] || "" : "",
+      course_title: fieldIndexMap.course_title !== undefined ? splitLine[fieldIndexMap.course_title] || "" : "",
+      time: fieldIndexMap.time !== undefined ? splitLine[fieldIndexMap.time] || "" : "",
+      room: fieldIndexMap.room !== undefined ? splitLine[fieldIndexMap.room] || "" : "",
+      day: fieldIndexMap.day !== undefined ? splitLine[fieldIndexMap.day] || "" : ""
+    };
 
-    if (isHeaderNoiseString(firstCellText)) continue;
-
-    if (firstCellText !== "" && !isValidCourseCode(firstCellText)) {
-      continue;
-    }
-
-    // Extract data using coordinates, NOT splits
-    const cells = {};
-    for (const targetField of Object.keys(fieldBounds)) {
-      const bound = fieldBounds[targetField];
-      let cellText = "";
-      if (line.length > bound.colStart) {
-        cellText = line.substring(bound.colStart, bound.colEnd).trim();
-      }
-      cells[targetField] = cellText;
-    }
+    const firstCellText = splitLine[0] || "";
 
     const isContinuation = isContinuationRow(cells, firstCellText);
 
