@@ -36,7 +36,7 @@ export async function extractTextFromPDF(file) {
   // Words inside a cell are typically 2-6pt apart.
   // Columns are typically 8-40pt apart depending on the form.
   // 8pt is the safe boundary — anything wider than 8pt gets a \t.
-  const TAB_THRESHOLD = 8;
+  const TAB_THRESHOLD = 5;
   const ROW_TOLERANCE = 4;
 
   let allLines = [];
@@ -99,7 +99,7 @@ export async function extractTextFromPDF(file) {
           // Gap = distance from end of previous item to start of current item
           const gap = current.x - (prev.x + prev.width);
 
-          if (gap > TAB_THRESHOLD) {
+          if (gap > 5) { // TAB_THRESHOLD computed as 5
             // Large gap = column boundary → use TAB
             lineText += "\t" + current.str;
           } else {
