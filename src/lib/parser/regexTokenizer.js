@@ -71,25 +71,28 @@ function extractTableLines(allLines, headerIndex) {
 
 const FIELD_SYNONYMS = {
   course_code: [
-    "course code", "code", "subject code", "subj code", "subj. code",
-    "subject no", "subj no", "catalog no", "cat. no", "katalogo"
+    'course code', 'code', 'subject code', 'subj code',
+    'subj. code', 'subject no', 'subj no', 'catalog no',
+    'cat. no', 'katalogo', 'course no', 'course no.'
   ],
   course_title: [
-    "course description", "description", "subject", "title",
-    "course title", "subject title", "descriptive title",
-    "subject description", "pamagat"
+    'course description', 'descriptive title', 'course title',
+    'subject title', 'subject description', 'description',
+    'course name', 'subject name', 'pamagat'
   ],
   day: [
-    "day", "days", "day/s", "araw", "schedule day", "sched day"
+    'day', 'days', 'day/s', 'araw', 'schedule day', 'class day',
+    'meeting day'
   ],
   time: [
-    "time", "time slot", "class hours", "schedule", "oras",
-    "class time", "sched time", "meeting time"
+    'time', 'time slot', 'class hours', 'class time',
+    'meeting time', 'schedule time', 'sched time', 'oras'
   ],
   room: [
-    "room", "room no", "room no.", "venue", "location",
-    "silid", "classroom", "room/venue", "building", "bldg"
-  ]
+    'room', 'room no', 'room no.', 'venue', 'location',
+    'classroom', 'class room', 'silid', 'bldg', 'building',
+    'room/venue'
+  ],
 };
 
 
@@ -277,17 +280,28 @@ function splitLine(line, delimiter) {
   return line.split(delimiter).map(s => s.trim()).filter(s => s !== "");
 }
 
+function matchesSynonym(cellText, synonym) {
+  const cellLower = cellText.toLowerCase().trim();
+  const synLower = synonym.toLowerCase().trim();
+
+  // Use exact match for short synonyms (single word, under 8 chars)
+  // Use includes() for longer multi-word synonyms
+  if (synLower.length <= 8 && !synLower.includes(' ')) {
+    return cellLower === synLower;
+  }
+  return cellLower.includes(synLower);
+}
+
 function buildFieldIndexMap(headerCells) {
   const map = {};
 
   headerCells.forEach((cell, index) => {
-    const lower = cell.toLowerCase().trim();
     for (const [field, synonyms] of Object.entries(FIELD_SYNONYMS)) {
-      if (synonyms.some(syn => lower.includes(syn))) {
-        // Only assign if not already assigned (first match wins)
-        if (map[field] === undefined) {
-          map[field] = index;
-        }
+      if (map[field] !== undefined) continue; // already assigned, skip
+      if (synonyms.some(syn => matchesSynonym(cell, syn))) {
+        map[field] = index;
+        console.log(`[tokenizer] Mapped "${cell}" (index ${index}) → ${field}`);
+        break;
       }
     }
   });
