@@ -168,29 +168,22 @@ function shouldMergeWithPrevious(cells, lastEntry, fieldMap) {
 }
 
 function isContinuationRow(cells, fieldIndexMap) {
-  // CONDITION A: course_code cell is empty after splitting
-  const codeIndex = fieldIndexMap.course_code;
-  if (codeIndex !== undefined && cells[codeIndex]?.trim() === '') {
-    return true;
-  }
-
-  // CONDITION B: first cell fails course code shape validation
-  // AND the first cell looks like a time value
   const firstCell = cells[0]?.trim() ?? '';
-  const looksLikeTime = /^\d{1,2}:\d{2}/.test(firstCell);
-  if (looksLikeTime) {
-    return true;
-  }
+  
+  // CONDITION A: first cell is empty (explicitly aligned continuation)
+  if (firstCell === '') return true;
 
-  // CONDITION C: first cell fails course code validation
-  // AND the row has time/room data but no recognizable code
-  const hasValidCode = isValidCourseCodeShape(firstCell);
-  if (!hasValidCode && firstCell !== '') {
-    const timeIndex = fieldIndexMap.time;
-    const hasTimeData = timeIndex !== undefined && /\d/.test(cells[timeIndex] ?? '');
-    if (hasTimeData) {
-      return true;
-    }
+  // CONDITION B: first cell looks like a time value (Format B)
+  if (/^\d{1,2}:\d{2}/.test(firstCell)) return true;
+
+  // CONDITION C: first cell is NOT a valid course code shape, 
+  // and we either have time data or it's clearly a title continuation word
+  if (!isValidCourseCodeShape(firstCell)) {
+    const hasTimeData = cells.some(c => /\d{1,2}:\d{2}/.test(c));
+    if (hasTimeData) return true;
+    
+    // If it's not a noise word (like header artifact) and not a code, treat as title continuation
+    if (!isDefinitelyNotACourseCode(firstCell)) return true;
   }
 
   return false;
@@ -201,45 +194,73 @@ function accumulateEntries(dataLines, fieldMap, delimiter) {
 
   for (const line of dataLines) {
     const cells = line.split(delimiter).map(s => s.trim());
+    if (cells.length === 0 || (cells.length === 1 && cells[0] === '')) continue;
 
     if (isContinuationRow(cells, fieldMap)) {
       const lastEntry = entries[entries.length - 1];
       if (lastEntry) {
-        // Format B (time first) vs Format A (empty leading cells)
-        const isFormatB = /^\d{1,2}:\d{2}/.test(cells[0]?.trim() ?? '');
-        
-        const timeVal = isFormatB ? cells[0] : cells[fieldMap.time];
-        const roomVal = isFormatB ? cells[1] : cells[fieldMap.room];
-
-        if (timeVal?.trim()) lastEntry.times_raw.push(timeVal.trim());
-        if (roomVal?.trim()) lastEntry.rooms_raw.push(roomVal.trim());
+        cells.forEach(cell => {
+          const c = cell.trim();
+          if (!c) return;
+          
+          if (/\d{1,2}:\d{2}/.test(c)) {
+            lastEntry.times_raw.push(c);
+          } else if (/^(M|T|W|Th|F|S|MTh|TF|Sa|Su|W \/ W|M \/ Th|Sa \/ Sa)+$/i.test(c.replace(/\s/g, ''))) {
+            // Day continuation
+          } else if (/^\d$/.test(c)) {
+            // Disregard units
+          } else if (c.includes('CS-') || c.includes('IT-')) {
+            // Disregard section
+          } else {
+            // Title or room
+            const hasNumbers = /\d/.test(c);
+            const isShort = c.length <= 15;
+            if (hasNumbers || (isShort && c === c.toUpperCase())) {
+              lastEntry.rooms_raw.push(c);
+            } else {
+              lastEntry.course_title = lastEntry.course_title ? lastEntry.course_title + ' ' + c : c;
+            }
+          }
+        });
       }
-      continue; // skip creating a new entry
+      continue;
     }
 
-    const codeCell = cells[fieldMap.course_code] ?? '';
-    const timeCell = cells[fieldMap.time] ?? '';
-    const roomCell = cells[fieldMap.room] ?? '';
-    const codeClass = classifyCourseCodeCell(codeCell);
+    const codeCell = cells[0] ?? '';
+    let titleCell = cells[1] ?? '';
+    
+    // Dynamic shape matching for the rest of the row, bypassing offset bugs
+    const timeCell = cells.find(c => /\d{1,2}:\d{2}/.test(c)) || '';
+    const dayCell = cells.find(c => /^(M|T|W|Th|F|S|MTh|TF|Sa|Su|W \/ W|M \/ Th|Sa \/ Sa)+$/i.test(c.replace(/\s/g, ''))) || '';
+    
+    // Room is whatever is left that isn't a known field, a unit, or a section
+    const roomCell = cells.find(c => 
+      c !== codeCell && 
+      c !== titleCell && 
+      c !== timeCell && 
+      c !== dayCell && 
+      !/^\d$/.test(c) && 
+      !/^[1-4][A-Z]{2,4}-[A-Z]$/.test(c) &&
+      c !== ''
+    ) || '';
 
+    const codeClass = classifyCourseCodeCell(codeCell);
     if (codeClass === 'NOISE') continue;
 
     const lastEntry = entries[entries.length - 1] ?? null;
     const isSameCodeAsPrevious = shouldMergeWithPrevious(cells, lastEntry, fieldMap);
 
     if (isSameCodeAsPrevious) {
-      // Continuation Format C — append time and room to last entry
       if (lastEntry) {
         if (timeCell) lastEntry.times_raw.push(timeCell);
         if (roomCell) lastEntry.rooms_raw.push(roomCell);
       }
     } else {
-      // New entry — detect inline multi-slot separator
       const sep = detectInlineSeparator(timeCell, roomCell);
       const newEntry = {
         course_code:  codeCell,
-        course_title: cells[fieldMap.course_title] ?? null,
-        days_raw:     cells[fieldMap.day] ?? null,
+        course_title: titleCell,
+        days_raw:     dayCell,
         times_raw:    readMultiValue(timeCell, sep),
         rooms_raw:    readMultiValue(roomCell, sep),
       };
@@ -411,8 +432,10 @@ export function tokenize(rawLines, isOCR = false) {
   tableLines = tableLines.map(line => {
     const cells = line.split(delimiter).map(s => s.trim());
     const filteredCells = cells.filter((_, idx) => !disregardIndices.has(idx));
-    return filteredCells.join(delimiter);
+    // Join using a string tab since delimiter is a RegExp object
+    return filteredCells.join('\t');
   });
 
-  return accumulateEntries(tableLines, fieldIndexMap, delimiter);
+  // Force accumulateEntries to use the tab delimiter we just joined with
+  return accumulateEntries(tableLines, fieldIndexMap, /\t/);
 }
