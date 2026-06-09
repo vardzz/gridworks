@@ -51,7 +51,7 @@ export async function extractTextFromPDF(file) {
     items.forEach(item => (totalChars += item.str.length));
 
     // ── Step 1: Cluster items into rows by y-coordinate ──────────────────
-    const rows = [];
+    let rows = [];
 
     for (const item of items) {
       const y = item.transform[5];
@@ -80,6 +80,8 @@ export async function extractTextFromPDF(file) {
 
     // ── Step 2: Sort rows top-to-bottom (y descending in pdf.js coords) ──
     rows.sort((a, b) => b.mean_y - a.mean_y);
+
+    rows = mergeSubHeaderRow(rows);
 
     // ── Step 3: Build line strings using \t as column delimiter ──────────
     for (const row of rows) {
@@ -135,4 +137,91 @@ export async function extractTextFromPDF(file) {
   });
 
   return allLines.filter(line => line.trim() !== "");
+}
+
+/**
+ * Detects a split header row (e.g. "Lec" / "Units" on separate lines)
+ * and merges the sub-row text into the correct cell of the main header row.
+ *
+ * A sub-header row is identified by ALL of these conditions:
+ * 1. It appears immediately after a row that scores as a schedule header
+ * 2. It contains FEWER items than the header row
+ * 3. ALL of its items are short (≤ 8 chars) single words
+ * 4. NONE of its items match a course code shape
+ *
+ * When found, each sub-row item is merged into the header item whose
+ * x-coordinate is nearest.
+ */
+function mergeSubHeaderRow(rows) {
+  if (rows.length < 2) return rows;
+
+  // Score each row to find the best header row
+  const HEADER_KEYWORDS = [
+    'course', 'code', 'description', 'day', 'time', 'room',
+    'subject', 'schedule', 'section', 'unit', 'lec', 'lab'
+  ];
+
+  function rowHeaderScore(row) {
+    const text = row.items.map(i => i.str).join(' ').toLowerCase();
+    return HEADER_KEYWORDS.filter(kw => text.includes(kw)).length;
+  }
+
+  function isSubHeaderRow(row, headerRow) {
+    // Must have fewer items than header
+    if (row.items.length >= headerRow.items.length) return false;
+    // All items must be short single words
+    const allShort = row.items.every(item => {
+      const s = item.str.trim();
+      return s.length <= 10 && !s.includes(' ');
+    });
+    if (!allShort) return false;
+    // Must be within 20pt vertically of the header row (directly below it)
+    const vertDist = Math.abs(row.mean_y - headerRow.mean_y);
+    if (vertDist > 20) return false;
+    return true;
+  }
+
+  // Find the header row index (highest scoring row)
+  let headerRowIdx = 0;
+  let bestScore = 0;
+  rows.forEach((row, idx) => {
+    const score = rowHeaderScore(row);
+    if (score > bestScore) {
+      bestScore = score;
+      headerRowIdx = idx;
+    }
+  });
+
+  const headerRow = rows[headerRowIdx];
+  const nextRowIdx = headerRowIdx + 1;
+
+  if (nextRowIdx >= rows.length) return rows;
+
+  const nextRow = rows[nextRowIdx];
+
+  if (!isSubHeaderRow(nextRow, headerRow)) return rows;
+
+  // Merge: for each sub-row item, find the nearest header item by x-coord
+  // and append its text to that header item
+  nextRow.items.forEach(subItem => {
+    let nearestIdx = 0;
+    let nearestDist = Infinity;
+    headerRow.items.forEach((headerItem, idx) => {
+      const dist = Math.abs(headerItem.x - subItem.x);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearestIdx = idx;
+      }
+    });
+    // Append sub-item text to nearest header item with a space
+    headerRow.items[nearestIdx].str += ' ' + subItem.str.trim();
+  });
+
+  // Remove the sub-header row from the array
+  rows.splice(nextRowIdx, 1);
+
+  console.log('[pdfExtractor] Merged split header row. Header now:',
+    headerRow.items.map(i => i.str.trim()).join(' | '));
+
+  return rows;
 }
