@@ -1,125 +1,115 @@
 // src/lib/parser/normalizer.js — Normalizes raw structured entries into schema objects
 
-const COMPOUND_MAP = {
-  "mth":  ["Monday", "Thursday"],
-  "mwf":  ["Monday", "Wednesday", "Friday"],
-  "tf":   ["Tuesday", "Friday"],
-  "tth":  ["Tuesday", "Thursday"],
-  "t/th": ["Tuesday", "Thursday"],
-  "mw":   ["Monday", "Wednesday"],
-  "wf":   ["Wednesday", "Friday"]
+const COMPOUND_DAYS = {
+  'mth': ['Monday','Thursday'],   'mwf': ['Monday','Wednesday','Friday'],
+  'tf':  ['Tuesday','Friday'],    'tth': ['Tuesday','Thursday'],
+  'ttf': ['Tuesday','Thursday','Friday'],
+  't/th':['Tuesday','Thursday'],  'm/th':['Monday','Thursday'],
+  't/f': ['Tuesday','Friday'],    'm/w': ['Monday','Wednesday'],
+  'mw':  ['Monday','Wednesday'],  'wf':  ['Wednesday','Friday'],
+  'w/w': ['Wednesday'],           // same day twice = once
+  'mtwthf': ['Monday','Tuesday','Wednesday','Thursday','Friday'],
 };
 
-const SINGLE_MAP = {
-  "m":  "Monday",
-  "t":  "Tuesday",
-  "w":  "Wednesday",
-  "th": "Thursday",
-  "f":  "Friday",
-  "s":  "Saturday",
-  "su": "Sunday"
+const SINGLE_DAYS = {
+  'm': 'Monday',  't': 'Tuesday',  'w': 'Wednesday',
+  'th': 'Thursday', 'f': 'Friday', 's': 'Saturday', 'su': 'Sunday'
 };
 
-const WORD_MAP = {
-  "mon": "Monday",  "monday":    "Monday",
-  "tue": "Tuesday", "tuesday":   "Tuesday",
-  "wed": "Wednesday","wednesday": "Wednesday",
-  "thu": "Thursday","thursday":  "Thursday",
-  "fri": "Friday",  "friday":    "Friday",
-  "sat": "Saturday","saturday":  "Saturday",
-  "sun": "Sunday",  "sunday":    "Sunday"
+const WORD_DAYS = {
+  'mon':'Monday',  'monday':'Monday',
+  'tue':'Tuesday', 'tuesday':'Tuesday',
+  'wed':'Wednesday','wednesday':'Wednesday',
+  'thu':'Thursday','thursday':'Thursday',
+  'fri':'Friday',  'friday':'Friday',
+  'sat':'Saturday','saturday':'Saturday',
+  'sun':'Sunday',  'sunday':'Sunday'
 };
 
-export function normalizeDays(daysRaw) {
-  if (!daysRaw) return [];
+export function normalizeDays(raw) {
+  if (!raw) return null;
 
-  const lower = daysRaw.toLowerCase().trim();
+  // Normalize: lowercase, remove dots, collapse whitespace
+  const lower = raw.toLowerCase().replace(/\./g, '').trim();
 
-  // Check compound map first (e.g. "mth", "mwf")
-  const noSlashSpace = lower.replace(/\//g,"").replace(/\s/g,"");
-  if (COMPOUND_MAP[noSlashSpace]) {
-    return COMPOUND_MAP[noSlashSpace];
-  }
+  // Check compound map first (handles "MTh", "MWF", "T/Th", "M/Th")
+  const compoundKey = lower.replace(/[\s\/]/g, '');
+  if (COMPOUND_DAYS[compoundKey]) return COMPOUND_DAYS[compoundKey];
 
-  // Split by "/" or "," or whitespace into tokens
+  // Split on / , whitespace into tokens
   const tokens = lower.split(/[\/,\s]+/).filter(Boolean);
-
   const result = [];
-  for (const token of tokens) {
-    if (WORD_MAP[token]) { result.push(WORD_MAP[token]); continue; }
-    if (SINGLE_MAP[token]) { result.push(SINGLE_MAP[token]); continue; }
 
-    // Greedy character walk for fused codes like "mth" not in compound map
+  for (const token of tokens) {
+    if (WORD_DAYS[token]) {
+      result.push(WORD_DAYS[token]);
+      continue;
+    }
+
+    // Greedy character walk: match "th" and "su" before single letters
     let i = 0;
     while (i < token.length) {
-      const two = token.substring(i, i+2);
-      const one = token.substring(i, i+1);
-      if (SINGLE_MAP[two]) { result.push(SINGLE_MAP[two]); i += 2; }
-      else if (SINGLE_MAP[one]) { result.push(SINGLE_MAP[one]); i += 1; }
-      else { i += 1; }
+      const two = token.slice(i, i + 2);
+      const one = token.slice(i, i + 1);
+      if (SINGLE_DAYS[two]) {
+        result.push(SINGLE_DAYS[two]);
+        i += 2;
+      } else if (SINGLE_DAYS[one]) {
+        result.push(SINGLE_DAYS[one]);
+        i += 1;
+      } else {
+        i += 1; // unrecognized, skip
+      }
     }
   }
 
+  // Deduplicate while preserving order
   return [...new Set(result)];
 }
 
 function parseTo24h(token) {
-  if (!token) return null;
-  token = token.trim();
+  if (!token || typeof token !== 'string') return null;
+  let t = token.trim().toLowerCase().replace(/\s+/g, '');
 
-  // Already 24-hour with colon (e.g. "13:00")
-  if (/^\d{2}:\d{2}$/.test(token)) {
-    return token;
+  // Already 24h with colon: "13:00"
+  if (/^\d{2}:\d{2}$/.test(t)) return t;
+
+  // Military time no colon: "1300"
+  if (/^\d{3,4}$/.test(t)) {
+    const h = parseInt(t.slice(0, -2), 10);
+    const m = parseInt(t.slice(-2), 10);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   }
 
-  // Military time no colon (e.g. "1300")
-  if (/^\d{3,4}$/.test(token)) {
-    const h = parseInt(token.slice(0, -2), 10);
-    const m = parseInt(token.slice(-2), 10);
-    return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
-  }
-
-  let lower = token.toLowerCase();
-
+  // Extract meridiem
   let meridiem = null;
-  if (lower.endsWith("pm") || lower.endsWith(" pm")) {
-    meridiem = "pm";
-    lower = lower.replace(/\s*pm$/, "").trim();
-  } else if (lower.endsWith("am") || lower.endsWith(" am")) {
-    meridiem = "am";
-    lower = lower.replace(/\s*am$/, "").trim();
-  } else if (lower.endsWith("p")) {
-    meridiem = "pm";
-    lower = lower.slice(0, -1).trim();
-  } else if (lower.endsWith("a")) {
-    meridiem = "am";
-    lower = lower.slice(0, -1).trim();
-  }
+  if (t.endsWith('pm')) { meridiem = 'pm'; t = t.slice(0,-2); }
+  else if (t.endsWith('am')) { meridiem = 'am'; t = t.slice(0,-2); }
+  else if (t.endsWith('p'))  { meridiem = 'pm'; t = t.slice(0,-1); }
+  else if (t.endsWith('a'))  { meridiem = 'am'; t = t.slice(0,-1); }
 
-  let h, m;
-  if (lower.includes(":")) {
-    const parts = lower.split(":");
-    h = Number(parts[0]);
-    m = Number(parts[1]);
-  } else {
-    h = parseInt(lower, 10);
-    m = 0;
-  }
-  
+  const parts = t.split(':');
+  let h = parseInt(parts[0], 10);
+  let m = parts[1] !== undefined ? parseInt(parts[1], 10) : 0;
   if (isNaN(h) || isNaN(m)) return null;
 
-  if (meridiem === "pm" && h !== 12) h += 12;
-  if (meridiem === "am" && h === 12) h = 0;
+  // No meridiem + hour < 8 → assume PM (afternoon classes)
+  // No meridiem + hour >= 8 → assume AM (morning classes)
+  if (meridiem === null) meridiem = h < 8 ? 'pm' : 'am';
 
-  return String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+  if (meridiem === 'pm' && h !== 12) h += 12;
+  if (meridiem === 'am' && h === 12) h = 0;
+
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 }
 
 function parseTimeRange(timeStr) {
-  if (!timeStr) return { start_time: null, end_time: null };
-
+  if (!timeStr || typeof timeStr !== 'string') {
+    return { start_time: null, end_time: null };
+  }
+  // Split on any dash variant surrounded by optional whitespace
   const parts = timeStr.split(/\s*[-–—]\s*/);
   if (parts.length < 2) return { start_time: null, end_time: null };
-  
   return {
     start_time: parseTo24h(parts[0]),
     end_time:   parseTo24h(parts[1])
@@ -135,8 +125,8 @@ export function normalizeEntries(rawEntries) {
     
     if (N === 0) {
       output.push({
-        subject_code: entry.subject_code,
-        subject_title: entry.subject_title,
+        course_code: entry.course_code,
+        course_title: entry.course_title,
         days: days,
         start_time: null,
         end_time: null,
@@ -152,8 +142,8 @@ export function normalizeEntries(rawEntries) {
                    : (entry.rooms_raw[0] !== undefined && entry.rooms_raw[0] !== "" ? entry.rooms_raw[0] : null);
 
       output.push({
-        subject_code:  entry.subject_code,
-        subject_title: entry.subject_title,
+        course_code:  entry.course_code,
+        course_title: entry.course_title,
         days:         days,
         start_time:   start_time,
         end_time:     end_time,

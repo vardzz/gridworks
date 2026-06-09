@@ -131,27 +131,76 @@ function classifyCourseCodeCell(cellValue) {
   return 'UNKNOWN'; // non-empty, not noise, not valid — treat as new entry cautiously
 }
 
-// Layer 4: Multi-Slot Detection Patterns
-const MULTI_SLOT_SEPARATORS = [
-  " / ",    // BCH 501 / COMLAB 3         (your current form)
-  " & ",    // BCH 501 & COMLAB 3
-  " and ",  // BCH 501 and COMLAB 3
-  "\n",     // separate lines (handled by continuation row logic already)
-  "; "      // BCH 501; COMLAB 3
-];
+const INLINE_SEPARATORS = [' / ', ' & ', '; ', ' and ', ' or '];
 
+function detectInlineSeparator(timeValue, roomValue) {
+  // Check which separator appears in BOTH time and room values
+  // If it appears in both, it's the multi-slot separator for this form
+  for (const sep of INLINE_SEPARATORS) {
+    if (timeValue.includes(sep) && roomValue.includes(sep)) {
+      return sep;
+    }
+  }
+  // Check if separator appears in just the time value
+  for (const sep of INLINE_SEPARATORS) {
+    if (timeValue.includes(sep)) {
+      return sep;
+    }
+  }
+  return null; // single slot
+}
 
+function readMultiValue(cellValue, separator) {
+  if (!cellValue || cellValue.trim() === '') return [];
+  if (!separator) return [cellValue.trim()];
+  return cellValue.split(separator).map(s => s.trim()).filter(Boolean);
+}
 
-function readMultiValue(cellValue) {
-  if (!cellValue) return [];
+function shouldMergeWithPrevious(cells, lastEntry, fieldMap) {
+  if (!lastEntry) return false;
+  const code = cells[fieldMap.course_code]?.trim();
+  // Same code as previous entry = Format C continuation
+  if (code && code === lastEntry.course_code) return true;
+  return false;
+}
 
-  for (const sep of MULTI_SLOT_SEPARATORS) {
-    if (cellValue.includes(sep)) {
-      return cellValue.split(sep).map(s => s.trim()).filter(Boolean);
+function accumulateEntries(dataLines, fieldMap, delimiter) {
+  const entries = [];
+
+  for (const line of dataLines) {
+    const cells = line.split(delimiter).map(s => s.trim());
+    const codeCell = cells[fieldMap.course_code] ?? '';
+    const timeCell = cells[fieldMap.time] ?? '';
+    const roomCell = cells[fieldMap.room] ?? '';
+    const codeClass = classifyCourseCodeCell(codeCell);
+
+    if (codeClass === 'NOISE') continue;
+
+    const lastEntry = entries[entries.length - 1] ?? null;
+    const isSameCodeAsPrevious = shouldMergeWithPrevious(cells, lastEntry, fieldMap);
+    const isEmptyCode = codeClass === 'EMPTY';
+
+    if (isEmptyCode || isSameCodeAsPrevious) {
+      // Continuation — append time and room to last entry
+      if (lastEntry) {
+        if (timeCell) lastEntry.times_raw.push(timeCell);
+        if (roomCell) lastEntry.rooms_raw.push(roomCell);
+      }
+    } else {
+      // New entry — detect inline multi-slot separator
+      const sep = detectInlineSeparator(timeCell, roomCell);
+      const newEntry = {
+        course_code:  codeCell,
+        course_title: cells[fieldMap.course_title] ?? null,
+        days_raw:     cells[fieldMap.day] ?? null,
+        times_raw:    readMultiValue(timeCell, sep),
+        rooms_raw:    readMultiValue(roomCell, sep),
+      };
+      entries.push(newEntry);
     }
   }
 
-  return [cellValue.trim()];
+  return entries;
 }
 
 
@@ -288,58 +337,7 @@ export function tokenize(rawLines, isOCR = false) {
   // Step 4 — Read Data Lines
   const tableLines = extractTableLines(rawLines, headerIndex);
 
-  // Steps 5-7 — Spatial Extraction + Detect + Accumulate
-  const entries = [];
-  
-  for (const line of tableLines) {
-    const splitLine = line.split(delimiter).map(s => s.trim());
-    
-    // Temporarily build cells object for backward compatibility with Problem 3 & 4
-    const cells = {
-      course_code: fieldIndexMap.course_code !== undefined ? splitLine[fieldIndexMap.course_code] || "" : "",
-      course_title: fieldIndexMap.course_title !== undefined ? splitLine[fieldIndexMap.course_title] || "" : "",
-      time: fieldIndexMap.time !== undefined ? splitLine[fieldIndexMap.time] || "" : "",
-      room: fieldIndexMap.room !== undefined ? splitLine[fieldIndexMap.room] || "" : "",
-      day: fieldIndexMap.day !== undefined ? splitLine[fieldIndexMap.day] || "" : ""
-    };
-
-    const codeCell = cells.course_code || "";
-    const codeClass = classifyCourseCodeCell(codeCell);
-
-    if (codeClass === 'NOISE') continue;
-
-    const isContinuation = (codeClass === 'EMPTY');
-
-    if (!isContinuation) {
-      const t = cells.time || "";
-      const r = cells.room || "";
-      
-      const rawTimeValues = readMultiValue(t);
-      const rawRoomValues = readMultiValue(r);
-
-      const entry = {
-        subject_code:  cells.course_code || "",
-        subject_title: cells.course_title || "",
-        days_raw:      cells.day || "",
-        times_raw:     rawTimeValues,
-        rooms_raw:     rawRoomValues
-      };
-      
-      entries.push(entry);
-    } else {
-      if (entries.length === 0) continue;
-      
-      const lastEntry = entries[entries.length - 1];
-      const t = cells.time || "";
-      const r = cells.room || "";
-      
-      const rawTimeValues = readMultiValue(t);
-      const rawRoomValues = readMultiValue(r);
-
-      lastEntry.times_raw.push(...rawTimeValues);
-      lastEntry.rooms_raw.push(...rawRoomValues);
-    }
-  }
+  return accumulateEntries(tableLines, fieldIndexMap, delimiter);
 
   return entries;
 }
