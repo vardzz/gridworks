@@ -383,20 +383,36 @@ export function tokenize(rawLines, isOCR = false) {
   // Re-fetch header line after optional OCR normalization
   const normHeaderLine = rawLines[headerIndex];
   
-  const headerCells = normHeaderLine.split(delimiter).map(s => s.trim()).filter(Boolean);
-  const fieldIndexMap = buildFieldIndexMap(headerCells);
+  const headerCells = normHeaderLine.split(delimiter).map(s => s.trim());
+  
+  // --- DISREGARD SPECIFIC COLUMNS (Lec, Lab, Units, Section) ---
+  const disregardIndices = new Set();
+  headerCells.forEach((cell, idx) => {
+    const c = cell.toLowerCase();
+    if (c.includes('lec') || c.includes('lab') || c.includes('unit') || c.includes('section')) {
+      disregardIndices.add(idx);
+    }
+  });
+
+  const filteredHeaderCells = headerCells.filter((_, idx) => !disregardIndices.has(idx));
+  const fieldIndexMap = buildFieldIndexMap(filteredHeaderCells);
 
   try {
-    validateFieldMap(fieldIndexMap, headerCells);
+    validateFieldMap(fieldIndexMap, filteredHeaderCells);
   } catch (err) {
     console.error("[tokenizer]", err.message);
     return [];
   }
 
   // Step 4 — Read Data Lines
-  const tableLines = extractTableLines(rawLines, headerIndex);
+  let tableLines = extractTableLines(rawLines, headerIndex);
+
+  // Apply the same disregard filter to every data line to maintain column alignment
+  tableLines = tableLines.map(line => {
+    const cells = line.split(delimiter).map(s => s.trim());
+    const filteredCells = cells.filter((_, idx) => !disregardIndices.has(idx));
+    return filteredCells.join(delimiter);
+  });
 
   return accumulateEntries(tableLines, fieldIndexMap, delimiter);
-
-  return entries;
 }
