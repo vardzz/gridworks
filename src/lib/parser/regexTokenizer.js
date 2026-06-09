@@ -1,9 +1,73 @@
 // src/lib/parser/regexTokenizer.js — Structured Data Tokenizer
 
-const TRIGGER_WORDS = [
-  "course code", "course description", "subject code",
-  "day", "time", "room"
+const SCHEDULE_CONCEPTS = [
+  // Code concept
+  ["course code", "code", "subject code", "subj", "catalog", "subject no"],
+  // Title concept
+  ["description", "title", "subject", "course name", "descriptive title"],
+  // Time concept
+  ["time", "schedule", "hours", "oras"],
+  // Day concept
+  ["day", "days", "araw", "sched"],
+  // Room concept
+  ["room", "venue", "location", "silid", "classroom"]
 ];
+
+function scoreLineAsHeader(line) {
+  const lower = line.toLowerCase();
+  // Count how many DISTINCT concept groups this line matches
+  const matched = SCHEDULE_CONCEPTS.filter(group =>
+    group.some(synonym => lower.includes(synonym))
+  );
+  return matched.length; // 0-5
+}
+
+function findScheduleHeaderLine(lines) {
+  let bestScore = 0;
+  let bestIndex = -1;
+  lines.forEach((line, i) => {
+    const score = scoreLineAsHeader(line);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = i;
+    }
+  });
+  // Require at least 3 concept matches to qualify as a schedule header
+  if (bestScore < 3) throw new Error('NO_SCHEDULE_TABLE_FOUND');
+  return bestIndex;
+}
+
+const SCHEDULE_DATA_SIGNALS = [
+  /\b[A-Z]{1,6}\d{1,4}[A-Z]?\b/,           // course code shape
+  /\d{1,2}:\d{2}\s*[aApP][mM]/,            // time with meridiem
+  /\b\d{2}:\d{2}\b/,                       // 24h time
+  /\b(M(?!a)|T(?!u)|W(?!e)|Th|F(?!e)|S(?!e)|Su|Mon|Tue|Wed|Thu|Fri|Sat|Sun|MWF|MTh|TF|TTh)\b/
+];
+
+function isScheduleDataRow(line) {
+  if (line.trim() === '') return false;
+  return SCHEDULE_DATA_SIGNALS.some(pattern => pattern.test(line));
+}
+
+function extractTableLines(allLines, headerIndex) {
+  const dataLines = [];
+  let consecutiveNonDataRows = 0;
+
+  for (let i = headerIndex + 1; i < allLines.length; i++) {
+    const line = allLines[i].trim();
+    if (line === '') continue;
+
+    if (isScheduleDataRow(line)) {
+      consecutiveNonDataRows = 0;
+      dataLines.push(allLines[i]);
+    } else {
+      consecutiveNonDataRows++;
+      // After 2 consecutive non-schedule rows, the table has ended
+      if (consecutiveNonDataRows >= 2) break;
+    }
+  }
+  return dataLines;
+}
 
 // Layer 1: Header Synonym Expansion
 const TARGET_MATCH = {
@@ -29,10 +93,7 @@ const TARGET_MATCH = {
   ]
 };
 
-const END_MARKERS = [
-  "prepared by", "noted by", "approved", "checked by",
-  "registrar", "dean", "total", "signature", "assessment of fees", "registered"
-];
+
 
 const HEADER_NOISE_PATTERNS = [
   /^units$/i,
@@ -83,16 +144,7 @@ function readMultiValue(cellValue) {
   return [cellValue.trim()];
 }
 
-function isHeaderLine(line) {
-  const lower = line.toLowerCase();
-  const matches = TRIGGER_WORDS.filter(word => lower.includes(word));
-  return matches.length >= 2;
-}
 
-function isFooterLine(line) {
-  const lower = line.toLowerCase().trim();
-  return END_MARKERS.some(marker => lower.startsWith(marker) || lower.includes(marker));
-}
 
 // Layer 0: Auto-Detect Delimiter
 function detectDelimiter(headerLine) {
@@ -174,14 +226,12 @@ export function tokenize(rawLines, isOCR = false) {
 
   // Step 2 — Find the Header Line
   let headerIndex = -1;
-  for (let i = 0; i < rawLines.length; i++) {
-    if (isHeaderLine(rawLines[i])) {
-      headerIndex = i;
-      break;
+  try {
+    headerIndex = findScheduleHeaderLine(rawLines);
+  } catch (error) {
+    if (error.message === 'NO_SCHEDULE_TABLE_FOUND') {
+      throw error; // Propagate for "No schedule table at all" requirement
     }
-  }
-
-  if (headerIndex === -1) {
     console.warn("[tokenizer] No target table header found");
     return [];
   }
@@ -260,14 +310,7 @@ export function tokenize(rawLines, isOCR = false) {
   }
 
   // Step 4 — Read Data Lines
-  const dataLines = rawLines.slice(headerIndex + 1);
-  const tableLines = [];
-  for (const line of dataLines) {
-    if (isFooterLine(line)) break;
-    if (line.trim() !== "") {
-      tableLines.push(line);
-    }
-  }
+  const tableLines = extractTableLines(rawLines, headerIndex);
 
   // Steps 5-7 — Spatial Extraction + Detect + Accumulate
   const entries = [];
