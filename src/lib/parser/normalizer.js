@@ -1,82 +1,95 @@
 const COMPOUND_DAYS = {
-  'mth':   ['Monday', 'Thursday'],
-  'mwf':   ['Monday', 'Wednesday', 'Friday'],
-  'tf':    ['Tuesday', 'Friday'],
-  'tth':   ['Tuesday', 'Thursday'],
-  't/th':  ['Tuesday', 'Thursday'],
-  'ttf':   ['Tuesday', 'Thursday', 'Friday'],
-  'm/th':  ['Monday', 'Thursday'],
-  't/f':   ['Tuesday', 'Friday'],
-  'mw':    ['Monday', 'Wednesday'],
-  'wf':    ['Wednesday', 'Friday'],
-  'w/w':   ['Wednesday'],
-  'sa/sa': ['Saturday'],
-  'mtwthf':['Monday','Tuesday','Wednesday','Thursday','Friday'],
+  'mth':    ['Monday', 'Thursday'],
+  'mwf':    ['Monday', 'Wednesday', 'Friday'],
+  'tf':     ['Tuesday', 'Friday'],
+  'tth':    ['Tuesday', 'Thursday'],
+  'ttf':    ['Tuesday', 'Thursday', 'Friday'],
+  'mw':     ['Monday', 'Wednesday'],
+  'wf':     ['Wednesday', 'Friday'],
+  'ww':     ['Wednesday'],          // W / W → deduplicated
+  'sasa':   ['Saturday'],           // Sa / Sa → deduplicated
+  'susu':   ['Sunday'],             // Su / Su → deduplicated
+  'ss':     ['Saturday'],           // S / S
+  'mtwthf': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
 };
-
-const SINGLE_DAYS = {
-  'm':  'Monday',
-  't':  'Tuesday',
-  'w':  'Wednesday',
+ 
+// Single token map — greedy two-char match first, then one-char
+const SINGLE_DAYS_2 = {
   'th': 'Thursday',
-  'f':  'Friday',
-  's':  'Saturday',
   'sa': 'Saturday',
   'su': 'Sunday',
 };
-
-const WORD_DAYS = {
-  'mon': 'Monday',    'monday':    'Monday',
-  'tue': 'Tuesday',   'tuesday':   'Tuesday',
-  'wed': 'Wednesday', 'wednesday': 'Wednesday',
-  'thu': 'Thursday',  'thursday':  'Thursday',
-  'fri': 'Friday',    'friday':    'Friday',
-  'sat': 'Saturday',  'saturday':  'Saturday',
-  'sun': 'Sunday',    'sunday':    'Sunday',
+ 
+const SINGLE_DAYS_1 = {
+  'm': 'Monday',
+  't': 'Tuesday',
+  'w': 'Wednesday',
+  'f': 'Friday',
+  's': 'Saturday',
 };
-
+ 
+const WORD_DAYS = {
+  'mon':  'Monday',    'monday':    'Monday',
+  'tue':  'Tuesday',   'tuesday':   'Tuesday',
+  'wed':  'Wednesday', 'wednesday': 'Wednesday',
+  'thu':  'Thursday',  'thursday':  'Thursday',
+  'fri':  'Friday',    'friday':    'Friday',
+  'sat':  'Saturday',  'saturday':  'Saturday',
+  'sun':  'Sunday',    'sunday':    'Sunday',
+};
+ 
+/**
+ * Converts a raw day string from the registration form into an array
+ * of full day name strings.
+ *
+ * @param {string|null} raw — e.g. "MTh", "W / W", "M / Th", "Sa / Sa"
+ * @returns {string[]} — e.g. ["Monday","Thursday"], ["Wednesday"], ["Saturday"]
+ */
 export function normalizeDays(raw) {
   if (!raw || typeof raw !== 'string') return [];
-
-  // Step 1: normalize input — lowercase, remove dots, trim
+ 
+  // Step 1: lowercase, remove dots, trim
   const lower = raw.toLowerCase().replace(/\./g, '').trim();
-
-  // Step 2: check compound map first
-  // Strip all spaces and slashes for compound lookup key
+ 
+  // Step 2: build compound lookup key — strip spaces, slashes, commas
   const compoundKey = lower.replace(/[\s\/,]+/g, '');
   if (COMPOUND_DAYS[compoundKey]) {
     return COMPOUND_DAYS[compoundKey];
   }
-
-  // Step 3: split into tokens on / , or whitespace
+ 
+  // Step 3: split into individual tokens on / , or whitespace
   const tokens = lower.split(/[\/,\s]+/).filter(Boolean);
   const result = [];
-
+ 
   for (const token of tokens) {
-    // Try full word match first (mon, monday, etc.)
+    // Try full word match (e.g. "monday", "mon", "sat")
     if (WORD_DAYS[token]) {
       result.push(WORD_DAYS[token]);
       continue;
     }
-
-    // Try greedy character walk for fused codes (e.g. "mth" not in compound)
+ 
+    // Greedy character walk — match 2-char tokens before 1-char
+    // Handles fused codes like "mth" that didn't match compound map
     let i = 0;
     while (i < token.length) {
       const two = token.slice(i, i + 2);
       const one = token.slice(i, i + 1);
-      if (SINGLE_DAYS[two]) {
-        result.push(SINGLE_DAYS[two]);
+ 
+      if (SINGLE_DAYS_2[two]) {
+        result.push(SINGLE_DAYS_2[two]);
         i += 2;
-      } else if (SINGLE_DAYS[one]) {
-        result.push(SINGLE_DAYS[one]);
+      } else if (SINGLE_DAYS_1[one]) {
+        result.push(SINGLE_DAYS_1[one]);
         i += 1;
       } else {
-        i += 1;
+        i += 1; // unrecognized character, skip
       }
     }
   }
-
-  // Step 4: deduplicate, preserve order
+ 
+  // Step 4: deduplicate while preserving order
+  // This collapses "W / W" → ["Wednesday","Wednesday"] → ["Wednesday"]
+  // and "Sa / Sa" → ["Saturday","Saturday"] → ["Saturday"]
   return [...new Set(result)];
 }
  
@@ -93,27 +106,28 @@ export function normalizeDays(raw) {
  */
 export function parseTo24h(token) {
   if (!token || typeof token !== 'string') return null;
-
-  // Remove all internal spaces then work on clean string
+ 
+  // Strip all internal whitespace so "10:00 AM" becomes "10:00am"
   let t = token.trim().toLowerCase().replace(/\s+/g, '');
-
-  // Already 24h: "13:00"
+ 
+  // Already 24h with colon: "13:00"
   if (/^\d{2}:\d{2}$/.test(t)) return t;
-
-  // Military: "1300"
+ 
+  // Military time no colon: "1300", "0830"
   if (/^\d{3,4}$/.test(t)) {
     const h = parseInt(t.slice(0, -2), 10);
     const m = parseInt(t.slice(-2), 10);
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   }
-
-  // Extract meridiem from end
+ 
+  // Extract and remove meridiem suffix
   let meridiem = null;
   if (t.endsWith('pm'))      { meridiem = 'pm'; t = t.slice(0, -2); }
   else if (t.endsWith('am')) { meridiem = 'am'; t = t.slice(0, -2); }
   else if (t.endsWith('p'))  { meridiem = 'pm'; t = t.slice(0, -1); }
   else if (t.endsWith('a'))  { meridiem = 'am'; t = t.slice(0, -1); }
-
+ 
+  // Parse hours and minutes
   const colonIdx = t.indexOf(':');
   let h, m;
   if (colonIdx !== -1) {
@@ -123,42 +137,48 @@ export function parseTo24h(token) {
     h = parseInt(t, 10);
     m = 0;
   }
-
+ 
   if (isNaN(h)) return null;
   if (isNaN(m)) m = 0;
-
-  // No meridiem: hour < 8 assume PM, hour >= 8 assume AM
-  if (meridiem === null) meridiem = h < 8 ? 'pm' : 'am';
-
+ 
+  // No meridiem detected — infer from hour value
+  // Hours 1-7 with no meridiem are almost certainly PM (afternoon classes)
+  // Hours 8-12 with no meridiem are almost certainly AM (morning classes)
+  if (meridiem === null) {
+    meridiem = (h >= 1 && h <= 7) ? 'pm' : 'am';
+  }
+ 
+  // Convert to 24h
   if (meridiem === 'pm' && h !== 12) h += 12;
-  if (meridiem === 'am' && h === 12) h = 0;
-
+  if (meridiem === 'am' && h === 12) h = 0;  // midnight edge case
+ 
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
-
+ 
+/**
+ * Splits a time range string into start and end 24h times.
+ * Handles: "1:00pm - 2:30pm", "10:00am - 1:00pm", "7:00am-9:00am"
+ *
+ * @param {string} timeStr — a single time range string
+ * @returns {{ start_time: string|null, end_time: string|null }}
+ */
 export function parseTimeRange(timeStr) {
   if (!timeStr || typeof timeStr !== 'string') {
     return { start_time: null, end_time: null };
   }
-
-  // Split on any dash variant, with optional surrounding whitespace
-  // Handles: " - ", "–", "—", "-", " – "
+ 
+  // Split on any dash variant with optional surrounding whitespace
+  // Handles: " - ", "-", "–" (en-dash), "—" (em-dash)
   const parts = timeStr.split(/\s*[-–—]\s*/);
-
+ 
   if (parts.length < 2) {
-    console.warn('[parseTimeRange] Could not split on dash:', timeStr);
     return { start_time: null, end_time: null };
   }
-
-  const start_time = parseTo24h(parts[0].trim());
-  const end_time   = parseTo24h(parts[1].trim());
-
-  if (!start_time || !end_time) {
-    console.warn('[parseTimeRange] Partial parse failure:',
-                 { input: timeStr, start_time, end_time });
-  }
-
-  return { start_time, end_time };
+ 
+  return {
+    start_time: parseTo24h(parts[0].trim()),
+    end_time:   parseTo24h(parts[1].trim()),
+  };
 }
  
 // ─────────────────────────────────────────────────────────────────────────────
@@ -257,29 +277,6 @@ function splitAndNormalizeEntry(rawEntry) {
       end_time:     null,
       room:         rawEntry.rooms_raw[0] ?? null,
     });
-  }
- 
-  return output;
-}
- 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN EXPORT — normalizeEntries()
-// ─────────────────────────────────────────────────────────────────────────────
- 
-/**
- * Converts raw tokenizer output into schema-ready schedule entries.
- *
- * @param {object[]} rawEntries — array from regexTokenizer.js
- * @returns {object[]} — array of { course_code, course_title, days, start_time, end_time, room }
- */
-export function normalizeEntries(rawEntries) {
-  if (!Array.isArray(rawEntries)) return [];
- 
-  const output = [];
- 
-  for (const entry of rawEntries) {
-    const normalized = splitAndNormalizeEntry(entry);
-    output.push(...normalized);
   }
  
   return output;
