@@ -94,24 +94,42 @@ const FIELD_SYNONYMS = {
 
 
 
-const HEADER_NOISE_PATTERNS = [
-  /^units$/i,
-  /^lec$/i,
-  /^lab$/i,
-  /^section$/i,
-  /^no\.?$/i,
-  /^hrs?\.?$/i
+const COURSE_CODE_PATTERNS = [
+  /^[A-Z]{2,6}\d{1,4}[A-Z]?$/,       // CSP109, TEC101, MATH11A
+  /^[A-Z]{1,6}\s\d{1,4}[A-Z]?$/,     // MATH 11, CS 101
+  /^[A-Z]{2,6}-\d{1,4}[A-Z]?$/,      // ENG-101, IT-201
+  /^[A-Z]{1,6}\d{1,4}[A-Z]{1,2}$/,   // CS101L, IT201LB (with lab suffix)
+  /^[A-Z]{2,8}\d{1,2}$/,             // NSTP01, PATHFIT1, ROTC1
+  /^[A-Z]{1,4}\d{1,4}$/,             // GE1, PE2, CS1
+  /^\d[A-Z]{2,6}\d{2,4}$/            // semester-prefixed codes
 ];
 
-// Layer 2: Course Code Pattern Expansion
-const COURSE_CODE_PATTERNS = [
-  /^[A-Z]{2,5}\d{2,4}[A-Z]?$/,        // CSP109, TEC101, MATH11A
-  /^[A-Z]{2,5}\s\d{2,4}[A-Z]?$/,      // CSP 109 (with space)
-  /^[A-Z]{2,5}-\d{2,4}[A-Z]?$/,       // CSP-109 (with dash)
-  /^[A-Z]{1,5}\d{1,4}[A-Z]{0,2}$/,    // CS101, IT1, GE1A
-  /^[A-Z]{2,6}\d{2,4}$/,              // NSTP01, PATHFIT1
-  /^\d{1,2}[A-Z]{2,5}\d{2,4}$/        // 1CSP109 (some systems prefix semester)
+// Shape validator — does this LOOK like a course code?
+function isValidCourseCodeShape(str) {
+  const s = str.trim();
+  if (s.length < 2 || s.length > 12) return false;
+  return COURSE_CODE_PATTERNS.some(p => p.test(s));
+}
+
+// Noise validator — is this definitely NOT a course code?
+const DEFINITE_NON_CODES = [
+  /^\d+$/,                            // pure number: "3", "18"
+  /^(lec|lab|units?|section|total|no\.?|hrs?\.?)$/i,  // header fragments
+  /^[a-z]/,                           // starts with lowercase
+  /\s{2,}/                            // contains multiple spaces (it's a phrase)
 ];
+
+function isDefinitelyNotACourseCode(str) {
+  return DEFINITE_NON_CODES.some(p => p.test(str.trim()));
+}
+
+function classifyCourseCodeCell(cellValue) {
+  const s = cellValue.trim();
+  if (s === '') return 'EMPTY';                       // continuation row
+  if (isDefinitelyNotACourseCode(s)) return 'NOISE'; // skip this row
+  if (isValidCourseCodeShape(s)) return 'VALID';     // new entry
+  return 'UNKNOWN'; // non-empty, not noise, not valid — treat as new entry cautiously
+}
 
 // Layer 4: Multi-Slot Detection Patterns
 const MULTI_SLOT_SEPARATORS = [
@@ -122,14 +140,7 @@ const MULTI_SLOT_SEPARATORS = [
   "; "      // BCH 501; COMLAB 3
 ];
 
-function isHeaderNoiseString(firstCellText) {
-  return HEADER_NOISE_PATTERNS.some(pattern => pattern.test(firstCellText));
-}
 
-function isValidCourseCode(str) {
-  const s = str.trim();
-  return COURSE_CODE_PATTERNS.some(pattern => pattern.test(s));
-}
 
 function readMultiValue(cellValue) {
   if (!cellValue) return [];
@@ -292,9 +303,12 @@ export function tokenize(rawLines, isOCR = false) {
       day: fieldIndexMap.day !== undefined ? splitLine[fieldIndexMap.day] || "" : ""
     };
 
-    const firstCellText = splitLine[0] || "";
+    const codeCell = cells.course_code || "";
+    const codeClass = classifyCourseCodeCell(codeCell);
 
-    const isContinuation = isContinuationRow(cells, firstCellText);
+    if (codeClass === 'NOISE') continue;
+
+    const isContinuation = (codeClass === 'EMPTY');
 
     if (!isContinuation) {
       const t = cells.time || "";
