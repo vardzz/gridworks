@@ -94,27 +94,7 @@ export default function StyleSidebar({
               </div>
             </div>
           </div>
-          {/* Paper Size */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
-              Paper Size
-            </label>
-            <div className="flex gap-2">
-              {["A4", "Letter"].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => onUpdate({ paper_size: size })}
-                  className={`flex-1 py-2 text-xs rounded-lg border transition-colors cursor-pointer min-h-[44px] ${
-                    prefs.paper_size === size
-                      ? "border-[var(--gw-accent)] bg-blue-50 text-[var(--gw-accent)]"
-                      : "border-alabaster-grey text-prussian-blue-700 hover:border-alabaster-grey-400"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
+
         </div>
 
         {/* Bottom toolbar */}
@@ -243,27 +223,7 @@ export default function StyleSidebar({
           </div>
         </div>
 
-        {/* Paper Size */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-alabaster-grey-300 uppercase tracking-wider">
-            Paper Size
-          </label>
-          <div className="flex gap-2">
-            {["A4", "Letter"].map((size) => (
-              <button
-                key={size}
-                onClick={() => onUpdate({ paper_size: size })}
-                className={`flex-1 py-2 text-xs rounded-lg border transition-colors cursor-pointer ${
-                  prefs.paper_size === size
-                    ? "border-[var(--gw-accent)] bg-blue-50 text-[var(--gw-accent)]"
-                    : "border-alabaster-grey text-prussian-blue-700 hover:border-alabaster-grey-400"
-                }`}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       {/* Bottom toolbar */}
