@@ -21,6 +21,7 @@ export default function ExportOverlay({
   onClose,
   onExportPNG,
   isExporting,
+  fallbackImageUrl,
 }) {
   const [filename, setFilename] = useState("My_Schedule");
 
@@ -48,41 +49,57 @@ export default function ExportOverlay({
         </div>
 
         <p className="text-sm text-alabaster-grey-300 font-medium max-sm:text-xs">
-          Save your schedule as a high-definition PNG to your device.
+          {fallbackImageUrl 
+            ? "Your schedule is ready! Due to browser restrictions, please save it manually."
+            : "Save your schedule as a high-definition PNG to your device."}
         </p>
 
-        <div className="space-y-3">
-          <label className="text-xs font-bold text-alabaster-grey-300 uppercase tracking-widest block">
-            File Name
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={filename}
-              onChange={(e) => setFilename(e.target.value)}
-              placeholder="My_Schedule"
-              className="w-full px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow max-sm:text-base max-sm:py-3.5"
-            />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-alabaster-grey-400 font-medium text-sm">
-              .png
+        {fallbackImageUrl ? (
+          <div className="flex flex-col items-center gap-4 animate-fade-in w-full">
+            <div className="w-full bg-neutral-100 rounded-xl border-2 border-neutral-200 p-2 overflow-hidden flex items-center justify-center max-h-[40vh]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={fallbackImageUrl} alt="Schedule Export" className="max-w-full max-h-full object-contain rounded-md" />
+            </div>
+            <div className="bg-prussian-blue-50 text-prussian-blue-700 text-sm font-bold px-4 py-3 rounded-lg w-full text-center border border-prussian-blue-200/30">
+              Long-press the image above and select "Save Image" or "Share"
             </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-alabaster-grey-300 uppercase tracking-widest block">
+                File Name
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={filename}
+                  onChange={(e) => setFilename(e.target.value)}
+                  placeholder="My_Schedule"
+                  className="w-full px-4 py-3 text-sm font-semibold border-2 border-alabaster-grey/50 rounded-xl bg-white text-prussian-blue-200 focus:outline-none focus:border-prussian-blue-200 transition-all shadow-sm hover:shadow max-sm:text-base max-sm:py-3.5"
+                />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-alabaster-grey-400 font-medium text-sm">
+                  .png
+                </div>
+              </div>
+            </div>
 
-        <button
-          onClick={() => onExportPNG(filename.trim() || "My_Schedule")}
-          disabled={isExporting}
-          className="w-full inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-3 rounded-full text-base font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[48px]"
-        >
-          {isExporting ? (
-            <>
-              <span className="animate-spin inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full mr-2" />
-              Generating…
-            </>
-          ) : (
-            "Download PNG"
-          )}
-        </button>
+            <button
+              onClick={() => onExportPNG(filename.trim() || "My_Schedule")}
+              disabled={isExporting}
+              className="w-full inline-flex items-center justify-center bg-[#fca311] text-black px-6 py-3 rounded-full text-base font-bold transition-all shadow-md hover:scale-105 hover:shadow-lg active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-h-[48px]"
+            >
+              {isExporting ? (
+                <>
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full mr-2" />
+                  Generating…
+                </>
+              ) : (
+                "Download PNG"
+              )}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

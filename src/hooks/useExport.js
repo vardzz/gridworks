@@ -15,6 +15,7 @@ import { useCallback, useState } from "react";
 export function useExport(canvasRef) {
   const [isExporting, setIsExporting] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
+  const [fallbackImageUrl, setFallbackImageUrl] = useState(null);
 
   const exportPNG = useCallback(async (customFileName) => {
     if (!canvasRef?.current) return;
@@ -57,8 +58,6 @@ export function useExport(canvasRef) {
             return; // Exit if share was successful
           }
         } catch (shareErr) {
-          // If user cancels the share sheet, it throws an AbortError. 
-          // We can just log it and return so it doesn't trigger a double download.
           if (shareErr.name === 'AbortError') {
             setIsExporting(false);
             return;
@@ -67,13 +66,21 @@ export function useExport(canvasRef) {
         }
       }
 
-      // 2. Fallback: Trigger standard HTML5 download
-      const link = document.createElement("a");
-      link.download = filenameWithExt;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Check if we are stuck in an in-app browser (Messenger, FB, IG, TikTok, Line, etc.)
+      const isAppBrowser = /FBAN|FBAV|Instagram|Snapchat|TikTok|Messenger|Line|MicroMessenger/i.test(navigator.userAgent);
+      
+      if (isAppBrowser) {
+        // Ultimate fallback: display the image on screen so they can long-press to save
+        setFallbackImageUrl(dataUrl);
+      } else {
+        // 2. Fallback: Trigger standard HTML5 download
+        const link = document.createElement("a");
+        link.download = filenameWithExt;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (err) {
       console.error("[Gridworks] PNG export failed:", err);
     } finally {
@@ -102,5 +109,7 @@ export function useExport(canvasRef) {
     isExporting,
     showMobileModal,
     closeMobileModal,
+    fallbackImageUrl,
+    setFallbackImageUrl,
   };
 }
