@@ -42,10 +42,15 @@ export async function POST(request: Request) {
           rows.sort((a, b) => a.y - b.y);
 
           // 3. X-Axis Grouping (Columns)
-          const headerRow = rows.find(r => 
-            r.nodes.some(n => n.text.toLowerCase().includes('course code')) &&
-            r.nodes.some(n => n.text.toLowerCase().includes('time'))
-          );
+          const headerRow = rows.find(r => {
+            const rowText = r.nodes.map(n => n.text.toLowerCase()).join(' ');
+            return rowText.includes('course code') &&
+                   (rowText.includes('course description') || rowText.includes('description')) &&
+                   rowText.includes('day') &&
+                   rowText.includes('time') &&
+                   rowText.includes('room') &&
+                   rowText.includes('section');
+          });
 
           if (!headerRow) {
             throw new Error("This document does not contain a schedule, please upload a valid pdf file");
