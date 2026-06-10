@@ -37,6 +37,13 @@ export function useExport(canvasRef) {
       const dataUrl = await toPng(node, {
         pixelRatio: Math.max(3, window.devicePixelRatio * 2),
         cacheBust: true,
+        width: node.scrollWidth,
+        height: node.scrollHeight,
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left',
+          margin: '0',
+        }
       });
 
       const safeName = customFileName ? customFileName.replace(/[^a-z0-9_\-\s]/gi, '_') : "My_Schedule";
