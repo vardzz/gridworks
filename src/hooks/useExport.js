@@ -31,14 +31,10 @@ export function useExport(canvasRef) {
       const node = canvasRef.current;
       const rect = node.getBoundingClientRect();
 
-      // Always export at a consistent "desktop" width for high-quality, readable PNGs regardless of device viewport
-      const exportWidth = 1200;
-
+      // Let the canvas export at its naturally rendered screen dimensions to avoid html-to-image clipping bugs (the black bar on the right).
+      // We use a high pixelRatio so the image remains extremely high-quality and readable even if the viewport is small.
       const dataUrl = await toPng(node, {
-        pixelRatio: Math.max(2, window.devicePixelRatio * 2),
-        width: exportWidth,
-        height: rect.height,
-        style: { width: `${exportWidth}px`, maxWidth: 'none', transform: 'none' },
+        pixelRatio: Math.max(3, window.devicePixelRatio * 2),
         cacheBust: true,
       });
 
