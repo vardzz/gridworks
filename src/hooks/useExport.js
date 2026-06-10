@@ -38,10 +38,38 @@ export function useExport(canvasRef) {
         cacheBust: true,
       });
 
-      // Trigger download
-      const link = document.createElement("a");
       const safeName = customFileName ? customFileName.replace(/[^a-z0-9_\-\s]/gi, '_') : "My_Schedule";
-      link.download = `${safeName}.png`;
+      const filenameWithExt = `${safeName}.png`;
+
+      // 1. Try Web Share API first (essential for in-app browsers like Messenger/Instagram)
+      if (navigator.share && navigator.canShare) {
+        try {
+          const res = await fetch(dataUrl);
+          const blob = await res.blob();
+          const file = new File([blob], filenameWithExt, { type: 'image/png' });
+          
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'My Schedule',
+            });
+            setIsExporting(false);
+            return; // Exit if share was successful
+          }
+        } catch (shareErr) {
+          // If user cancels the share sheet, it throws an AbortError. 
+          // We can just log it and return so it doesn't trigger a double download.
+          if (shareErr.name === 'AbortError') {
+            setIsExporting(false);
+            return;
+          }
+          console.warn("Web Share API failed, falling back to standard download:", shareErr);
+        }
+      }
+
+      // 2. Fallback: Trigger standard HTML5 download
+      const link = document.createElement("a");
+      link.download = filenameWithExt;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
