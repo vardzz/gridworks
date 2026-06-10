@@ -42,41 +42,40 @@ export async function POST(request: Request) {
           rows.sort((a, b) => a.y - b.y);
 
           // 3. X-Axis Grouping (Columns)
-          // Dynamically detect column bounds based on header locations to ensure 100% accuracy
-          let BOUNDS = {
-            code:  { min: 0,  max: 6 },
-            title: { min: 6,  max: 18 },
-            day:   { min: 22, max: 28 },
-            time:  { min: 28, max: 36 },
-            room:  { min: 36, max: 45 },
-          };
-
           const headerRow = rows.find(r => 
-            r.nodes.some(n => n.text.toLowerCase().includes('course code') || n.text.toLowerCase().includes('time'))
+            r.nodes.some(n => n.text.toLowerCase().includes('course code')) &&
+            r.nodes.some(n => n.text.toLowerCase().includes('time'))
           );
 
-          if (headerRow) {
-            const getX = (keyword: string) => {
-              const node = headerRow.nodes.find(n => n.text.toLowerCase().includes(keyword));
-              return node ? node.x : null;
-            };
-
-            const codeX = getX('code') ?? 0;
-            const descX = getX('description') ?? 6;
-            const lecX = getX('lec') ?? 18;
-            const dayX = getX('day') ?? 22;
-            const timeX = getX('time') ?? 28;
-            const roomX = getX('room') ?? 36;
-            const secX = getX('section') ?? 45;
-
-            BOUNDS = {
-              code:  { min: codeX - 1, max: descX - 0.5 },
-              title: { min: descX - 0.5, max: lecX - 0.5 }, // Strictly cut off before Lec
-              day:   { min: dayX - 1, max: timeX - 0.5 },
-              time:  { min: timeX - 1, max: roomX - 0.5 },
-              room:  { min: roomX - 1, max: secX - 0.5 }, // Strictly cut off before Section
-            };
+          if (!headerRow) {
+            throw new Error("This document does not contain a schedule, please upload a valid pdf file");
           }
+
+          const getX = (synonyms: string[]) => {
+            const node = headerRow.nodes.find(n => synonyms.some(syn => n.text.toLowerCase().includes(syn)));
+            return node ? node.x : null;
+          };
+
+          const anchors = {
+            code: getX(['course code', 'subject']),
+            title: getX(['description', 'title']),
+            day: getX(['day']),
+            time: getX(['time']),
+            room: getX(['room']),
+            sec: getX(['section']) || 100 // Fallback far right
+          };
+
+          if (anchors.code === null || anchors.title === null || anchors.day === null || anchors.time === null || anchors.room === null) {
+            throw new Error("This document does not contain a schedule, please upload a valid pdf file");
+          }
+
+          const BOUNDS = {
+            code:  { min: 0, max: (anchors.code + anchors.title) / 2 },
+            title: { min: (anchors.code + anchors.title) / 2, max: (anchors.title + anchors.day) / 2 },
+            day:   { min: (anchors.title + anchors.day) / 2, max: (anchors.day + anchors.time) / 2 },
+            time:  { min: (anchors.day + anchors.time) / 2, max: (anchors.time + anchors.room) / 2 },
+            room:  { min: (anchors.time + anchors.room) / 2, max: (anchors.room + anchors.sec) / 2 },
+          };
 
           const extractedEntries: any[] = [];
           let currentEntry: any = null;
