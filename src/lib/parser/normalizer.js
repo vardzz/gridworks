@@ -220,7 +220,6 @@ function detectInlineSeparator(timeValue, roomValue) {
  * @returns {object[]} — array of normalized output entries, one per time slot
  */
 function splitAndNormalizeEntry(rawEntry) {
-  const days = normalizeDays(rawEntry.days_raw);
   const output = [];
  
   // times_raw and rooms_raw are arrays built by the tokenizer.
@@ -229,10 +228,12 @@ function splitAndNormalizeEntry(rawEntry) {
  
   const allTimeSlots = [];
   const allRoomSlots = [];
+  const allDaySlots = [];
  
   for (let i = 0; i < rawEntry.times_raw.length; i++) {
     const timeVal = rawEntry.times_raw[i] ?? '';
     const roomVal = rawEntry.rooms_raw[i] ?? rawEntry.rooms_raw[0] ?? '';
+    const dayVal = rawEntry.days_raw ?? '';
  
     const sep = detectInlineSeparator(timeVal, roomVal);
  
@@ -240,15 +241,19 @@ function splitAndNormalizeEntry(rawEntry) {
       // Split both by the separator and pair by index
       const timeParts = timeVal.split(sep).map(s => s.trim()).filter(Boolean);
       const roomParts = roomVal.split(sep).map(s => s.trim()).filter(Boolean);
+      const dayParts = dayVal.split(sep).map(s => s.trim()).filter(Boolean);
  
       timeParts.forEach((t, idx) => {
         allTimeSlots.push(t);
         // Pair with room at same index; fall back to first room if not enough rooms
         allRoomSlots.push(roomParts[idx] ?? roomParts[0] ?? '');
+        // Pair with day at same index; fall back to first day if not enough days
+        allDaySlots.push(dayParts[idx] ?? dayParts[0] ?? '');
       });
     } else {
       allTimeSlots.push(timeVal);
       allRoomSlots.push(roomVal);
+      allDaySlots.push(dayVal);
     }
   }
  
@@ -256,6 +261,7 @@ function splitAndNormalizeEntry(rawEntry) {
   for (let i = 0; i < allTimeSlots.length; i++) {
     const { start_time, end_time } = parseTimeRange(allTimeSlots[i]);
     const room = allRoomSlots[i] ?? null;
+    const days = normalizeDays(allDaySlots[i]);
  
     output.push({
       course_code:  rawEntry.course_code  ?? null,
@@ -272,7 +278,7 @@ function splitAndNormalizeEntry(rawEntry) {
     output.push({
       course_code:  rawEntry.course_code  ?? null,
       course_title: rawEntry.course_title ?? null,
-      days,
+      days:         normalizeDays(rawEntry.days_raw),
       start_time:   null,
       end_time:     null,
       room:         rawEntry.rooms_raw[0] ?? null,
