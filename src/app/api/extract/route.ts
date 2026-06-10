@@ -85,7 +85,17 @@ export async function POST(request: Request) {
           const extractedEntries: any[] = [];
           let currentEntry: any = null;
 
-          rows.forEach(row => {
+          const headerIndex = rows.findIndex(r => r === headerRow);
+
+          for (let i = headerIndex + 1; i < rows.length; i++) {
+            const row = rows[i];
+            
+            // Stop parsing if we hit the end-of-table markers to avoid extracting the Assessment/Fees table
+            const fullRowText = row.nodes.map(n => n.text.toLowerCase()).join(' ');
+            if (fullRowText.includes('total number of units') || fullRowText.includes('assessment breakdown')) {
+              break;
+            }
+
             // Helper to extract text strictly within an X-boundary
             const getTextInBounds = (min: number, max: number) => {
               const nodesInBounds = row.nodes.filter(n => n.x >= min && n.x < max);
@@ -133,7 +143,7 @@ export async function POST(request: Request) {
                  }
                }
             }
-          });
+          }
 
           resolve(NextResponse.json({ success: true, data: extractedEntries }));
         } catch (error: any) {
