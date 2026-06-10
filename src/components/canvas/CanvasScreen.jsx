@@ -90,7 +90,7 @@ export default function CanvasScreen({
         <div className="overflow-x-auto max-lg:-mx-3 max-lg:px-3">
           <div
             ref={canvasRef}
-            className="w-full max-w-[1200px] mx-auto"
+            className="w-full"
             data-theme={prefs.theme_id || "minimalist_bureau"}
             style={{ ...canvasOverrides, fontFamily: prefs.font_family || "var(--gw-font-display)" }}
           >
