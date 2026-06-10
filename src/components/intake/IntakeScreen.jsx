@@ -29,6 +29,7 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
     parse,
     isLoading,
     progress,
+    courseCount,
     error,
     consentNeeded,
     approveConsent,
@@ -166,7 +167,9 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
               <div className="flex flex-col items-center gap-4 z-10">
                 <div className="animate-spin w-8 h-8 border-3 border-alabaster-grey-400 border-t-prussian-blue-700 rounded-full" />
                 <p className="text-sm text-prussian-blue-700 font-medium max-sm:text-xs">
-                  {progress > 0
+                  {courseCount > 0
+                    ? `${courseCount} course${courseCount === 1 ? '' : 's'} have been read…`
+                    : progress > 0
                     ? `Reading your file… ${progress}%`
                     : "Reading your file…"}
                 </p>

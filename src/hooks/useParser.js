@@ -15,6 +15,7 @@ import { parseFile } from "@/lib/parser";
 export function useParser() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [courseCount, setCourseCount] = useState(0);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [consentNeeded, setConsentNeeded] = useState(false);
@@ -30,6 +31,7 @@ export function useParser() {
     setError(null);
     setResult(null);
     setProgress(0);
+    setCourseCount(0);
 
     const isImage = file.type.startsWith("image/");
 
@@ -45,7 +47,15 @@ export function useParser() {
 
     try {
       const parseResult = await parseFile(file, {
-        onProgress: (p) => setProgress(p),
+        onProgress: (payload) => {
+          if (payload?.type === 'percent') {
+            setProgress(payload.value);
+          } else if (payload?.type === 'courseCount') {
+            setCourseCount(payload.value);
+          } else {
+            setProgress(payload); // fallback for older code if any
+          }
+        },
         skipLLM: options.skipLLM || false,
         skipPreCheck: options.skipPreCheck || false,
       });
@@ -100,6 +110,7 @@ export function useParser() {
     parse,
     isLoading,
     progress,
+    courseCount,
     error,
     result,
     consentNeeded,

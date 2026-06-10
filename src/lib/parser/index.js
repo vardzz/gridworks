@@ -44,7 +44,9 @@ export async function parseFile(file, options = {}) {
   let rawEntries = [];
   
   if (isImage) {
-    const rawText = await extractTextFromImage(file, onProgress);
+    const rawText = await extractTextFromImage(file, (p) => {
+      if (onProgress) onProgress({ type: 'percent', value: p });
+    });
     if (rawText) {
       // Legacy image handling (if needed, but usually image uploads will fail the new backend unless supported)
       rawLines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
@@ -61,14 +63,34 @@ export async function parseFile(file, options = {}) {
         body: formData
       });
       
-      const result = await response.json();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let bufferStr = '';
       
-      if (!result.success) {
-         console.error("API Extraction failed:", result.error);
-         return { entries: [], confidence: 0, error: "extraction_failed" };
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        bufferStr += decoder.decode(value, { stream: true });
+        const lines = bufferStr.split('\n');
+        bufferStr = lines.pop(); // keep incomplete line
+        
+        for (const line of lines) {
+           if (!line.trim()) continue;
+           try {
+             const parsed = JSON.parse(line);
+             if (parsed.type === 'progress') {
+                if (onProgress) onProgress({ type: 'courseCount', value: parsed.count });
+             } else if (parsed.type === 'done') {
+                rawEntries = parsed.data;
+             } else if (parsed.type === 'error') {
+                throw new Error(parsed.error);
+             }
+           } catch (e) {
+             console.error("Failed to parse stream chunk:", line, e);
+           }
+        }
       }
-      
-      rawEntries = result.data;
     } catch (error) {
       console.error("Network or API extraction failed:", error);
       return { entries: [], confidence: 0, error: "extraction_failed" };
