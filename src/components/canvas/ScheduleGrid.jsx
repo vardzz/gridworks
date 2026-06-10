@@ -23,7 +23,7 @@ const ALL_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
  * @param {Array} props.schedule — array of schedule entries from state
  * @param {function} props.onUpdateEntry — (id, patch) => void
  */
-export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
+export default function ScheduleGrid({ schedule, onUpdateEntry, setSchedule, isExporting }) {
   // Safety Clamps: filter out courses missing essential geometry data
   const validCourses = schedule.filter(e => e.start_time && e.end_time && e.days?.length > 0);
   const partialCourses = schedule.filter(e => !e.start_time || !e.end_time || !e.days || e.days.length === 0);
@@ -58,6 +58,85 @@ export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
       );
     }
   }
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // necessary to allow dropping
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, targetDay) => {
+    e.preventDefault();
+    try {
+      const dataStr = e.dataTransfer.getData("application/json");
+      if (!dataStr) return;
+      
+      const data = JSON.parse(dataStr);
+      if (!data || !data.id || !data.originalDay) return;
+
+      // Calculate the drop time
+      const rect = e.currentTarget.getBoundingClientRect();
+      const dropY = e.clientY - rect.top;
+      
+      // Adjust drop position by where the user grabbed the card
+      const top = dropY - data.offsetY - GRID_PT;
+      const totalMinutes = (top / SLOT_HEIGHT) * 30 + (START_HOUR * 60);
+      
+      // Snap to 30 min boundary, ensure it doesn't go above START_HOUR
+      const snappedMinutes = Math.max(START_HOUR * 60, Math.round(totalMinutes / 30) * 30);
+      
+      const h = Math.floor(snappedMinutes / 60);
+      const m = snappedMinutes % 60;
+      const newStartTime = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      
+      const oldEntry = schedule.find(s => s.id === data.id);
+      if (!oldEntry) return;
+
+      const dur = timeToMinutes(oldEntry.end_time) - timeToMinutes(oldEntry.start_time);
+      const endMinutes = snappedMinutes + dur;
+      const eH = Math.floor(endMinutes / 60);
+      const eM = endMinutes % 60;
+      const newEndTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+      // Check if day and time actually changed
+      if (data.originalDay === targetDay && oldEntry.start_time === newStartTime) {
+        return; // No change
+      }
+
+      // Detach the dragged day from the original entry
+      const remainingDays = (oldEntry.days || []).filter(d => d !== data.originalDay);
+      
+      let newSchedule = [...schedule];
+      
+      if (remainingDays.length === 0) {
+        // If it was only on one day, just update it entirely
+        newSchedule = newSchedule.map(s => 
+          s.id === data.id 
+            ? { ...s, days: [targetDay], start_time: newStartTime, end_time: newEndTime }
+            : s
+        );
+      } else {
+        // Multi-day class being split as per user request: "make each class a single entity"
+        newSchedule = newSchedule.map(s =>
+          s.id === data.id
+            ? { ...s, days: remainingDays }
+            : s
+        );
+        // Add the new detached entry
+        const newEntry = {
+          ...oldEntry,
+          id: crypto.randomUUID(), // generate new ID
+          days: [targetDay],
+          start_time: newStartTime,
+          end_time: newEndTime,
+        };
+        newSchedule.push(newEntry);
+      }
+
+      setSchedule(newSchedule);
+    } catch (err) {
+      console.error("Drop failed", err);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -119,6 +198,8 @@ export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
             <div
               key={day}
               className="flex-1 relative border-l border-[var(--gw-border-color)] group/col hover:bg-[var(--gw-text-primary)]/[0.03] transition-colors duration-300"
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, day)}
             >
               {/* Day header */}
               <div className="h-14 flex items-center justify-center border-b border-[var(--gw-border-color)] bg-[var(--gw-bg-header)]/80 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500">
@@ -158,6 +239,7 @@ export default function ScheduleGrid({ schedule, onUpdateEntry, isExporting }) {
                         schedule.find((s) => s.id === entry.id)
                       )}
                       onUpdate={(patch) => onUpdateEntry(entry.id, patch)}
+                      currentDay={day}
                     />
                   );
                 })}

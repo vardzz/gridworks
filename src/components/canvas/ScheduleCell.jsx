@@ -22,7 +22,7 @@ const CELL_PALETTE = [
  * @param {number} props.colorIndex — index for palette cycling
  * @param {function} props.onUpdate — (patch) => void
  */
-export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate }) {
+export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate, currentDay }) {
   const bgColor = entry.color_override || CELL_PALETTE[colorIndex % CELL_PALETTE.length];
 
   const handleBlur = (field, maxLength) => (e) => {
@@ -41,9 +41,68 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
     }
   };
 
+  const handleDragStart = (e) => {
+    // Basic DND payload
+    e.dataTransfer.setData("application/json", JSON.stringify({
+      id: entry.id,
+      originalDay: currentDay,
+      offsetY: e.nativeEvent.offsetY || 0,
+    }));
+    // Optional: make it slightly transparent while dragging
+    e.currentTarget.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.style.opacity = '1';
+  };
+
+  const handleResizeStart = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // prevent drag
+    
+    const startY = e.clientY;
+    const initialHeight = parseFloat(style.height) || 48; // 48 is SLOT_HEIGHT
+    
+    const onMouseMove = (moveEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(48, initialHeight + deltaY); // minimum 30 min (48px)
+      
+      // Calculate new end time
+      // 48px = 30 minutes. 
+      // new duration in minutes = (newHeight / 48) * 30
+      const totalMinutes = (newHeight / 48) * 30;
+      const snappedMinutes = Math.round(totalMinutes / 30) * 30;
+      
+      if (snappedMinutes > 0) {
+        // Compute new end time from start time
+        const [sH, sM] = (entry.start_time || "07:00").split(":").map(Number);
+        const endTotal = (sH * 60 + sM) + snappedMinutes;
+        const eH = Math.floor(endTotal / 60);
+        const eM = endTotal % 60;
+        const newEndTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+        
+        // We trigger an update if it changed
+        if (newEndTime !== entry.end_time) {
+          onUpdate({ end_time: newEndTime });
+        }
+      }
+    };
+    
+    const onMouseUp = () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+    
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
+
   return (
     <div
-      className="absolute overflow-hidden flex flex-col gap-0.5 p-2.5 sm:p-3 transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] hover:z-20 active-schedule-cell group cursor-pointer"
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      className="absolute overflow-hidden flex flex-col gap-0.5 p-2.5 sm:p-3 transition-shadow duration-300 shadow-sm hover:shadow-xl hover:z-20 active-schedule-cell group cursor-grab active:cursor-grabbing"
       style={{
         ...style,
         backgroundColor: bgColor,
@@ -84,25 +143,34 @@ export default function ScheduleCell({ entry, style, colorIndex = 0, onUpdate })
       </div>
 
       {/* Room + Professor (secondary info) */}
-      <div className="text-[10px] text-black/60 font-medium mt-auto flex items-center gap-1 truncate pt-1">
-        <span
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={handleBlur("room", 20)}
-          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm transition-colors"
-        >
-          {entry.room || ""}
-        </span>
-        {entry.room && entry.professor && <span>•</span>}
+      <div className="text-[10px] text-black/60 font-medium mt-auto flex flex-col items-start gap-0.5 truncate pt-1">
         <span
           contentEditable
           suppressContentEditableWarning
           onBlur={handleBlur("professor", 60)}
-          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm truncate transition-colors"
+          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm truncate transition-colors w-full"
         >
           {entry.professor || ""}
         </span>
+        <span
+          contentEditable
+          suppressContentEditableWarning
+          onBlur={handleBlur("room", 20)}
+          className="outline-none focus:ring-2 focus:ring-[var(--gw-accent)] focus:bg-white/50 rounded-sm transition-colors w-full opacity-80"
+        >
+          {entry.room || ""}
+        </span>
       </div>
+
+      {/* Resize Handle */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-black/10 transition-colors z-30"
+        onMouseDown={handleResizeStart}
+        onTouchStart={(e) => {
+          // mobile support can be added similarly if requested
+          // for now we rely on the mouse event handler
+        }}
+      />
     </div>
   );
 }
