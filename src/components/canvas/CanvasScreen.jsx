@@ -38,8 +38,8 @@ export default function CanvasScreen({
     isExporting,
     showMobileModal,
     closeMobileModal,
-    fallbackImageUrl,
-    setFallbackImageUrl,
+    inAppBrowserError,
+    setInAppBrowserError,
   } = useExport(canvasRef);
 
   const [showExport, setShowExport] = useState(false);
@@ -176,14 +176,14 @@ export default function CanvasScreen({
         isOpen={showExport}
         onClose={() => {
           setShowExport(false);
-          if (fallbackImageUrl) setFallbackImageUrl(null);
+          if (inAppBrowserError) setInAppBrowserError(false);
         }}
         onExportPNG={exportPNG}
         onExportPDF={exportPDF}
         isExporting={isExporting}
         showMobileModal={showMobileModal}
         onCloseMobileModal={closeMobileModal}
-        fallbackImageUrl={fallbackImageUrl}
+        inAppBrowserError={inAppBrowserError}
       />
     </div>
   );

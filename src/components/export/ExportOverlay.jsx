@@ -21,7 +21,7 @@ export default function ExportOverlay({
   onClose,
   onExportPNG,
   isExporting,
-  fallbackImageUrl,
+  inAppBrowserError,
 }) {
   const [filename, setFilename] = useState("My_Schedule");
 
@@ -49,19 +49,15 @@ export default function ExportOverlay({
         </div>
 
         <p className="text-sm text-alabaster-grey-300 font-medium max-sm:text-xs">
-          {fallbackImageUrl 
-            ? "Your schedule is ready! Due to browser restrictions, please save it manually."
+          {inAppBrowserError 
+            ? "Your browser is blocking downloads."
             : "Save your schedule as a high-definition PNG to your device."}
         </p>
 
-        {fallbackImageUrl ? (
-          <div className="flex flex-col items-center gap-4 animate-fade-in w-full">
-            <div className="w-full bg-neutral-100 rounded-xl border-2 border-neutral-200 p-2 overflow-hidden flex items-center justify-center max-h-[40vh]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={fallbackImageUrl} alt="Schedule Export" className="max-w-full max-h-full object-contain rounded-md" />
-            </div>
-            <div className="bg-prussian-blue-50 text-prussian-blue-700 text-sm font-bold px-4 py-3 rounded-lg w-full text-center border border-prussian-blue-200/30">
-              Long-press the image above and select "Save Image" or "Share"
+        {inAppBrowserError ? (
+          <div className="flex flex-col items-center gap-4 animate-fade-in w-full pb-2">
+            <div className="bg-red-50 text-red-700 text-sm font-bold px-4 py-4 rounded-lg w-full text-center border border-red-200">
+              Please open Gridworks in your local browser (Safari or Chrome) for full functionality. <br/><br/> Messenger does not support downloading or sharing images.
             </div>
           </div>
         ) : (

@@ -15,7 +15,7 @@ import { useCallback, useState } from "react";
 export function useExport(canvasRef) {
   const [isExporting, setIsExporting] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
-  const [fallbackImageUrl, setFallbackImageUrl] = useState(null);
+  const [inAppBrowserError, setInAppBrowserError] = useState(false);
 
   const exportPNG = useCallback(async (customFileName) => {
     if (!canvasRef?.current) return;
@@ -70,8 +70,7 @@ export function useExport(canvasRef) {
       const isAppBrowser = /FBAN|FBAV|Instagram|Snapchat|TikTok|Messenger|Line|MicroMessenger/i.test(navigator.userAgent);
       
       if (isAppBrowser) {
-        // Ultimate fallback: display the image on screen so they can long-press to save
-        setFallbackImageUrl(dataUrl);
+        setInAppBrowserError(true);
       } else {
         // 2. Fallback: Trigger standard HTML5 download
         const link = document.createElement("a");
@@ -109,7 +108,7 @@ export function useExport(canvasRef) {
     isExporting,
     showMobileModal,
     closeMobileModal,
-    fallbackImageUrl,
-    setFallbackImageUrl,
+    inAppBrowserError,
+    setInAppBrowserError,
   };
 }
