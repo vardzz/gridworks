@@ -16,6 +16,12 @@
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
 </p>
 
+<p align="center">
+  <a href="https://gridworks.vercel.app" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Live_Demo-gridworks.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo" />
+  </a>
+</p>
+
 ---
 
 ## 📋 Table of Contents
@@ -80,7 +86,18 @@ Gridworks features an advanced parsing pipeline designed for maximum accuracy wi
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 🌐 Live Deployment
+
+You can use the live application directly without any setup:
+👉 **[gridworks.vercel.app](https://gridworks.vercel.app)**
+
+---
+
+### Local Development
+
+If you prefer to run the project locally on your machine, follow the steps below:
+
+#### Prerequisites
 
 Make sure you have the following installed on your local machine:
 
