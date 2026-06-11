@@ -199,7 +199,7 @@ export default function IntakeScreen({ parser, onParsed, onManualEntry }) {
                   )}
                 </p>
                 <p className="text-xs text-prussian-blue-400 mt-6 max-sm:mt-4 z-10 text-center">
-                  Supports PDF, PNG, JPEG • Max 10 MB
+                  Supports PDF • Max 10 MB
                 </p>
                 
                 {/* Floating Document Mock 1 — hidden on mobile (no drag-and-drop) */}
