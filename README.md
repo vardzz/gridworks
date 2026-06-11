@@ -1,6 +1,7 @@
-# Gridworks
+<h1 align="center">Gridworks</h1>
 
 <p align="center">
+
   <img src="./public/gridworks-logo.png" alt="Gridworks Logo" width="120" height="120" style="margin-bottom: 20px;" />
 </p>
 
