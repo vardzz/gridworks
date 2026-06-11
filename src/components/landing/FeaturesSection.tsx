@@ -35,10 +35,9 @@ export function FeaturesSection() {
             <div className="aspect-[4/3] max-sm:aspect-[4/5] max-sm:p-4 bg-alabaster-grey-900 border border-alabaster-grey p-8 md:p-16 flex items-center justify-center transition-transform duration-700 group-hover:scale-[1.02] overflow-hidden rounded-3xl">
               
               <div className="w-full max-w-md bg-white border border-alabaster-grey shadow-2xl rounded-2xl p-2 flex flex-col relative overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#fca311] to-prussian-blue-300 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
                 {/* Drag and Drop Zone */}
-                <div className="border-2 border-dashed border-alabaster-grey-900 rounded-xl bg-alabaster-grey/20 flex flex-col items-center justify-center p-6 sm:p-12 relative group-hover:border-prussian-blue-300 transition-colors duration-500 overflow-hidden">
+                <div className="border-2 border-dashed border-alabaster-grey-900 rounded-xl bg-alabaster-grey/20 flex flex-col items-center justify-center p-6 sm:p-12 relative group-hover:border-prussian-blue-300 transition-colors duration-500 overflow-hidden cursor-pointer">
                   
                   <div className="w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-500 relative z-10">
                     <UploadCloud className="text-prussian-blue-600 group-hover:text-[#fca311] transition-colors" size={32} />
